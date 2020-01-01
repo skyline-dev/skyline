@@ -29,6 +29,11 @@ namespace skyline {
         static void Log(const char* data, size_t size = UINT32_MAX);
         static void Log(std::string str);
         static void LogFormat(const char* format, ...);
+
+        static void SendRaw(const char*);
+        static void SendRawFormat(const char*, ...);
+        static void SendRaw(void*, size_t);
+        
         static void ClearQueue();
     };
 };

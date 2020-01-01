@@ -58,6 +58,10 @@ typedef void (*ThreadFunc)(void *);
 #define WEAK __attribute__((weak))
 #endif
 
+#ifndef ALIGNA
+#define ALIGNA(x) __attribute__((aligned(x)))
+#endif
+
 #ifndef IGNORE_ARG
 #define IGNORE_ARG(x) (void)(x)
 #endif
@@ -82,4 +86,4 @@ typedef void (*ThreadFunc)(void *);
 #endif 
 
 
-#define R_ERRORONFAIL(r) if(R_FAILED(r))*((u32*)r) = 0x69;
+#define R_ERRORONFAIL(r) if(R_FAILED(r))*((Result*)0x69) = r;

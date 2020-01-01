@@ -1,5 +1,7 @@
 #pragma once
 
+#include <inttypes.h>
+#include <array>
 #include "mem.h"
 #include "alloc.h"
 #include "operator.h"

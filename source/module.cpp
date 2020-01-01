@@ -11,4 +11,4 @@ struct ModuleName {
 };
 
 __attribute__((section(".rodata.application_name")))
-ModuleName module_name = {.unknown = 0, .name_lengh = MODULE_NAME_LEN, .name = MODULE_NAME};
+const ModuleName module_name = {.unknown = 0, .name_lengh = MODULE_NAME_LEN, .name = MODULE_NAME};

@@ -14,7 +14,7 @@ u32 previousPowerOfTwo(u32 x) {
 
 u64 memNextMap(u64 addr) {
     MemoryInfo info;
-    u64 map;
+    u32 map;
     svcQueryMemory(&info, &map, addr);
 
     if(addr == info.addr  && info.type != MemType_Unmapped)
@@ -25,7 +25,7 @@ u64 memNextMap(u64 addr) {
 
 u64 memNextMapOfType(u64 addr, u32 type){
     MemoryInfo info;
-    u64 map;
+    u32 map;
     svcQueryMemory(&info, &map, addr);
 
     if(info.type == type)
@@ -35,7 +35,7 @@ u64 memNextMapOfType(u64 addr, u32 type){
 }
 u64 memNextMapOfPerm(u64 addr, u32 perm){
     MemoryInfo info;
-    u64 map;
+    u32 map;
     svcQueryMemory(&info, &map, addr);
 
     if(info.perm == perm)

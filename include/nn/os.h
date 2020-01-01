@@ -56,25 +56,6 @@ namespace nn
             ThreadType() {};
         };
 
-        struct UserExceptionInfo
-        {
-            s32 ExceptionType; // _0
-            u64 _4;
-            u64 _8;
-            u64 GPR[0x1E]; // _10
-            u64 LR; // _100
-            u64 StackPointer; // _108
-            u64 PC; // _110
-            u64 _118;
-            u64 FPR[0x20]; // _120
-            u8 _220[0x320-0x220];
-            u32 PState; // _320
-            u32 AFSR0; // _324
-            u32 AFSR1; // _328
-            u32 ESR; // _32C
-            u64 Far; // _330
-        };
-
         // ARG
         void SetHostArgc(s32);
         s32 GetHostArgc();
@@ -133,6 +114,43 @@ namespace nn
         void ResumeThread(nn::os::ThreadType *);
         void SleepThread(nn::TimeSpan);
 
+        // EXCEPTION HANDLING
+        typedef union {
+            u64 x; ///< 64-bit AArch64 register view.
+            u32 w; ///< 32-bit AArch64 register view.
+            u32 r; ///< AArch32 register view.
+        } CpuRegister;
+        /// Armv8 NEON register.
+
+        typedef union {
+            u128    v; ///< 128-bit vector view.
+            double  d; ///< 64-bit double-precision view.
+            float   s; ///< 32-bit single-precision view.
+        } FpuRegister;
+
+        struct UserExceptionInfo {
+            u32 ErrorDescription;             ///< See \ref ThreadExceptionDesc.
+            u32 pad[3];
+
+            CpuRegister CpuRegisters[29];   ///< GPRs 0..28. Note: also contains AArch32 registers.
+            CpuRegister FP;             ///< Frame pointer.
+            CpuRegister LR;             ///< Link register.
+            CpuRegister SP;             ///< Stack pointer.
+            CpuRegister PC;             ///< Program counter (elr_el1).
+
+            u64 padding;
+
+            FpuRegister FpuRegisters[32];   ///< 32 general-purpose NEON registers.
+
+            u32 PState;                 ///< pstate & 0xFF0FFE20
+            u32 AFSR0;
+            u32 AFSR1;
+            u32 ESR;
+
+            CpuRegister FAR;            ///< Fault Address Register.
+        };
+        void SetUserExceptionHandler(void(*)(UserExceptionInfo*), void*, ulong, UserExceptionInfo*);
+
         // OTHER
         void GenerateRandomBytes(void *, u64);
         nn::os::Tick GetSystemTick();
@@ -141,8 +159,8 @@ namespace nn
 
         namespace detail
         {
-            static s32 g_CommandLineParameter;
-            static char** g_CommandLineParameterArgv;
+            extern s32 g_CommandLineParameter;
+            extern char** g_CommandLineParameterArgv;
         };
     };
 };

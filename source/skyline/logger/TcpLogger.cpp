@@ -30,7 +30,7 @@ namespace skyline {
         
         nn::socket::Initialize(socketPool, poolSize, 0x20000, 14);
 
-        A64HookFunction(nn::socket::Initialize, stub, NULL); // prevent Smash trying to init sockets twice (crash)
+        A64HookFunction(reinterpret_cast<void*>(nn::socket::Initialize), reinterpret_cast<void*>(stub), NULL); // prevent Smash trying to init sockets twice (crash)
         
         const size_t stackSize = 0x3000;
         void* threadStack = memalign(0x1000, stackSize);
@@ -40,7 +40,25 @@ namespace skyline {
         nn::os::StartThread(thread);
     }
 
-    void SendRaw(void* data, size_t size)
+    void TcpLogger::SendRaw(const char* data)
+    {
+        SendRaw((void*)data, strlen(data));
+    }
+
+    void TcpLogger::SendRawFormat(const char* format, ...)
+    {
+        va_list args;
+        char buff[0x1000] = {0};
+        va_start(args, format);
+
+        int len = vsnprintf(buff, sizeof(buff), format, args);
+        
+        TcpLogger::SendRaw(buff, len);
+        
+        va_end (args);
+    }
+
+    void TcpLogger::SendRaw(void* data, size_t size)
     {
         nn::socket::Send(g_tcpSocket, data, size, 0);
     }
@@ -87,7 +105,7 @@ namespace skyline {
 
         //g_loggerInit = true;
         
-        TcpLogger::Log("socket initialized!\n");
+        TcpLogger::Log("socket initialized!");
         TcpLogger::ClearQueue();
     }
 
@@ -100,9 +118,10 @@ namespace skyline {
         if (size == UINT32_MAX)
             size = strlen(data);
 
-        char* ptr = new char[size+1];
-        memset(ptr, 0, size+1);
+        char* ptr = new char[size+2];
+        memset(ptr, 0, size+2);
         memcpy(ptr, data, size);
+        ptr[size] = '\n';
 
         if (!g_loggerInit)
         {
