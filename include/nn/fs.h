@@ -80,7 +80,9 @@ namespace nn
         void CloseFile(FileHandle fileHandle);
         Result FlushFile(FileHandle fileHandle);
         Result DeleteFile(char const* filepath);
-        Result ReadFile(u64 *, nn::fs::FileHandle, s64, void *, u64, s32 const &);
+        Result ReadFile(u64* outSize, nn::fs::FileHandle handle, s64 offset, void* buffer, u64 bufferSize, s32 const &);
+        Result ReadFile(u64* outSize, nn::fs::FileHandle handle, s64 offset, void* buffer, u64 bufferSize);
+        Result ReadFile(nn::fs::FileHandle handle, s64 offset, void* buffer, u64 bufferSize);
         Result WriteFile(FileHandle handle, s64 fileOffset, void const *buff, u64 size, WriteOption const &option);
         Result GetFileSize(s64* size, FileHandle fileHandle);
 
