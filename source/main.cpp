@@ -60,6 +60,7 @@ void lookupCharacterFileHook(uint* result, char* path){
 
     skyline::TcpLogger::LogFormat("%s | 0x%x", path, *result);
 };
+skyline::arc::Hashes* hashes;
 
 void (*buildBntxPatchString)(std::array<char, 0xFF>*, int, bool);
 
@@ -69,6 +70,7 @@ void buildBntxPatchStringHook(std::array<char, 0xFF>* str, int a, bool b){
     buildBntxPatchString(str, a, b);
 }
 
+void stub() {}
 
 void runtimePatchMain(void*){
     // wait for nnSdk to finish booting
