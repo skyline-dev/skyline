@@ -115,11 +115,15 @@ void runtimePatchMain(void*){
     A64HookFunction(
         reinterpret_cast<void*>(text + 0x3126030), 
         reinterpret_cast<void*>(lookupCharacterFileHook), 
-        (void**) &lookupCharacterFile);
+    hashes = new skyline::arc::Hashes();
+
+    nn::ro::Initialize();
     A64HookFunction(
-        reinterpret_cast<void*>(text + 0x2E75AC0), 
-        reinterpret_cast<void*>(buildBntxPatchStringHook), 
-        (void**) &buildBntxPatchString);
+        reinterpret_cast<void*>(nn::ro::Initialize), 
+        reinterpret_cast<void*>(stub), 
+        NULL);
+
+    skyline::Plugin::Manager::Init();
 }
 
 void skylineMain() {

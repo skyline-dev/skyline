@@ -1,20 +1,21 @@
 
 #pragma once
 
-#include <arpa/inet.h>
-#include <queue>
-#include <string>
-#include <cstring>
-#include <cstdarg>
-
+#include "operator.h"
 #include "alloc.h"
 #include "mem.h"
-#include "skyline/inlinehook/And64InlineHook.hpp"
+
 #include "nn/socket.h"
 #include "nn/os.h"
 #include "nn/time.h"
 
-#include "operator.h"
+#include "skyline/inlinehook/And64InlineHook.hpp"
+
+#include <queue>
+#include <string>
+#include <arpa/inet.h>
+#include <cstring>
+#include <cstdarg>
 
 namespace skyline {
     class TcpLogger

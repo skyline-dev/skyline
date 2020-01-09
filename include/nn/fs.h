@@ -15,7 +15,14 @@ namespace nn
     namespace fs
     {
         typedef u64 UserId;
-        struct DirectoryEntry;
+        
+        struct DirectoryEntry {
+            char name[0x300+1];
+            char _x302[3];
+            u8 type;
+            char _x304;
+            s64 fileSize;
+        };
 
         struct FileHandle
         {
@@ -29,22 +36,28 @@ namespace nn
 
         enum DirectoryEntryType
         {
-            DIRECTORY,
-            FILE
+            DirectoryEntryType_Directory,
+            DirectoryEntryType_File
         };
 
         enum OpenMode 
         {
-            OpenMode_Read = 1 << 0,
-            OpenMode_Write = 1 << 1,
-            OpenMode_Append = 1 << 2,
+            OpenMode_Read = BIT(0),
+            OpenMode_Write = BIT(1),
+            OpenMode_Append = BIT(2),
 
             OpenMode_ReadWrite = OpenMode_Read | OpenMode_Write
         };
 
+        enum OpenDirectoryMode {
+            OpenDirectoryMode_Directory = BIT(0),
+            OpenDirectoryMode_File = BIT(1),
+            OpenDirectoryMode_All = OpenDirectoryMode_Directory | OpenDirectoryMode_File
+        };
+
         enum WriteOptionFlag 
         {
-            WriteOptionFlag_Flush = 1 << 0
+            WriteOptionFlag_Flush = BIT(0)
         };
 
         struct WriteOption
@@ -92,6 +105,7 @@ namespace nn
         void CloseDirectory(DirectoryHandle directoryHandle);
         Result ReadDirectory(s64*, DirectoryEntry*, DirectoryHandle directoryHandle, s64);
         Result CreateDirectory(char const* directorypath);
+        Result GetDirectoryEntryCount(s64*, DirectoryHandle);
 
         // SD
         Result MountSdCard(char const *);

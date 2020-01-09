@@ -40,6 +40,8 @@ SOURCES		:= 	source \
 					source/skyline/nx/sf \
 					source/skyline/inlinehook \
 					source/skyline/logger \
+					source/skyline/utils \
+					source/skyline/arc \
 					source/skyline/plugin
 DATA		:=	data
 INCLUDES	:=	include

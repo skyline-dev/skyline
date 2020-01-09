@@ -10,7 +10,6 @@
 #include "skyline/nx/result.h"
 #include "skyline/nx/kernel/svc.h"
 #include "skyline/nx/smc.h"
-#include "skyline/utils.h"
 
 static Result _smcWriteAddress(void *dst_addr, u64 val, u32 size)
 {

@@ -1,4 +1,4 @@
-#include "skyline/utils.h"
+#include "skyline/utils/utils.h"
 
 u32 previousPowerOfTwo(u32 x) {
     if (x == 0) {
@@ -33,6 +33,7 @@ u64 memNextMapOfType(u64 addr, u32 type){
 
     return memNextMapOfType(info.addr + info.size , type); 
 }
+
 u64 memNextMapOfPerm(u64 addr, u32 perm){
     MemoryInfo info;
     u32 map;
@@ -43,4 +44,3 @@ u64 memNextMapOfPerm(u64 addr, u32 perm){
 
     return memNextMapOfType(info.addr + info.size , perm); 
 }
-

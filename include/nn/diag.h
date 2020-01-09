@@ -24,7 +24,8 @@ namespace nn
         {
             // LOG
             void LogImpl(nn::diag::LogMetaData const &, char const *, ...);
-            void AbortImpl(char const*, char const*, char const *, s32);
+            void AbortImpl(char const*, char const*, char const*, s32);
+            void AbortImpl(char const*, char const*, char const*, int, Result)
         };
 
         // MODULE / SYMBOL

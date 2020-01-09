@@ -27,12 +27,22 @@ namespace nn
 
         typedef u64 Tick;
         typedef u64 LightEventType;
-        
-        struct MessageQueueType;
-        struct SystemEvent;
-        struct SystemEventType;
-        
+
         // https://github.com/misson20000/nn-types/blob/master/nn_os.h
+        struct EventType {
+            nn::os::EventType *_x0;
+            nn::os::EventType *_x8;
+            bool isSignaled;
+            bool initiallySignaled;
+            bool shouldAutoClear;
+            bool isInit;
+            u32 signalCounter;
+            u32 signalCounter2;
+            nn::os::detail::InternalCriticalSection crit;
+            nn::os::detail::InternalConditionVariable condvar;
+        };
+        typedef EventType Event;
+        
         struct ThreadType 
         {
             u8 _0[0x40];
@@ -55,6 +65,10 @@ namespace nn
 
             ThreadType() {};
         };
+
+        struct MessageQueueType;
+        struct SystemEvent;
+        struct SystemEventType;
 
         // ARG
         void SetHostArgc(s32);

@@ -7,6 +7,9 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdalign.h>
+#include <inttypes.h>
+
+#include "skyline/nx/result.h"
 
 #pragma once
 

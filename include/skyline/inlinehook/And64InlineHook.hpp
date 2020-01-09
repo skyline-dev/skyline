@@ -30,12 +30,13 @@
 #define A64_MAX_BACKUPS 256
 
 
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+    #include "../utils/utils.h"
     #include "alloc.h"
-    #include "../utils.h"
     #include "../nx/result.h"
     #include "../nx/smc.h"
     #include "../nx/kernel/jit.h"

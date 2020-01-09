@@ -10,5 +10,5 @@ struct ModuleName {
     char name[MODULE_NAME_LEN + 1];
 };
 
-__attribute__((section(".rodata.application_name")))
+__attribute__((section(".rodata.module_name")))
 const ModuleName module_name = {.unknown = 0, .name_lengh = MODULE_NAME_LEN, .name = MODULE_NAME};
