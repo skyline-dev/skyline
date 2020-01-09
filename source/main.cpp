@@ -60,15 +60,8 @@ void lookupCharacterFileHook(uint* result, char* path){
 
     skyline::TcpLogger::LogFormat("%s | 0x%x", path, *result);
 };
+
 skyline::arc::Hashes* hashes;
-
-void (*buildBntxPatchString)(std::array<char, 0xFF>*, int, bool);
-
-void buildBntxPatchStringHook(std::array<char, 0xFF>* str, int a, bool b){
-    skyline::TcpLogger::LogFormat("%s | a: %x | b %i", str->cbegin(), a, b);
-
-    buildBntxPatchString(str, a, b);
-}
 
 void stub() {}
 
