@@ -6,6 +6,8 @@
 #pragma once
 
 #include "types.h"
+#include "operator.h"
+#include <string>
 
 namespace std
 {
@@ -58,5 +60,39 @@ namespace std
 
         template<typename T, typename T2>
         void __insertion_sort_incomplete(T2, T2, T);
-    }; 
+    };
+
+    namespace __1 {
+        class locale {
+            class facet {
+                ~facet();
+                void __on_zero_shared();
+            };
+
+            class id {
+                void __init();
+                void __get();
+            };
+
+            public:
+            static locale global(locale const&);
+            static locale __global();
+            static const locale& classic();
+
+            locale();
+            locale(locale const&);
+            locale(locale const&, locale const&, int);
+            locale(locale const&, std::string const&, int);
+            locale(std::string const&);
+            
+            std::string name() const;
+
+            bool has_facet(locale::id const&);
+
+            int operator=(locale const&);
+            void operator==(locale const&);
+
+            ~locale();
+        };
+    };
 };

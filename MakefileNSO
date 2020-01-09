@@ -39,14 +39,15 @@ SOURCES		:= 	source \
 					source/skyline/nx/runtime \
 					source/skyline/nx/sf \
 					source/skyline/inlinehook \
-					source/skyline/logger
+					source/skyline/logger \
+					source/skyline/plugin
 DATA		:=	data
 INCLUDES	:=	include
 
 #---------------------------------------------------------------------------------
 # options for code generation
 #---------------------------------------------------------------------------------
-ARCH	:=	-march=armv8-a -mtune=cortex-a57 -mtp=soft -fPIE -ftls-model=local-exec
+ARCH	:=	-march=armv8-a -mtune=cortex-a57 -mtp=soft -fPIC -ftls-model=local-exec
 
 CFLAGS	:=	-g -Wall -ffunction-sections \
 			$(ARCH) $(DEFINES)
