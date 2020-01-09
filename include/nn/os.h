@@ -66,7 +66,25 @@ namespace nn
             ThreadType() {};
         };
 
-        struct MessageQueueType;
+        struct MessageQueueType {
+            u64 _x0;
+            u64 _x8;
+            u64 _x10;
+            u64 _x18;
+            void* Buffer;
+            u32 MaxCount;
+            u32 Count;
+            u32 Offset;
+            bool Initialized;
+            detail::InternalCriticalSection _x38;
+            detail::InternalConditionVariable _x3C;
+            detail::InternalConditionVariable _x40;
+        };
+
+        struct ConditionVariableType {
+
+        };
+
         struct SystemEvent;
         struct SystemEventType;
 
@@ -104,14 +122,31 @@ namespace nn
         // QUEUE
         void InitializeMessageQueue(nn::os::MessageQueueType *, u64 *buf, u64 queueCount);
         void FinalizeMessageQueue(nn::os::MessageQueueType *);
-        bool TrySendMessageQueue(MessageQueueType* queue, u64* d);
-        void SendMessageQueue(MessageQueueType* queue, u64* d);
-        bool TryReceiveMessageQueue(u64* out, MessageQueueType* queue);
-        void ReceiveMessageQueue(u64* out, MessageQueueType* queue);
-        bool TryPeekMessageQueue(u64 *, nn::os::MessageQueueType const *);
-        void PeekMessageQueue(u64 *, nn::os::MessageQueueType const *);
+
+        bool TrySendMessageQueue(MessageQueueType*, u64);
+        void SendMessageQueue(MessageQueueType*, u64*);
+        bool TimedSendMessageQueue(MessageQueueType *, u64, nn::TimeSpan);
+
+        bool TryReceiveMessageQueue(u64* out, MessageQueueType*);
+        void ReceiveMessageQueue(u64* out, MessageQueueType*);
+        bool TimedReceiveMessageQueue(u64* out, MessageQueueType*, nn::TimeSpan);
+
+        bool TryPeekMessageQueue(u64 *, MessageQueueType const *);
+        void PeekMessageQueue(u64 *, MessageQueueType const *);
+        bool TimedPeekMessageQueue(u64*, MessageQueueType const*);
+
         bool TryJamMessageQueue(nn::os::MessageQueueType *, u64);
         void JamMessageQueue(nn::os::MessageQueueType *, u64);
+        bool TimedJamMessageQueue(nn::os::MessageQueueType *, u64, nn::TimeSpan);
+
+        // CONDITION VARIABLE
+        void InitializeConditionVariable(ConditionVariableType*);
+        void FinalizeConditionVariable(ConditionVariableType*);
+        
+        void SignalConditionVariable(ConditionVariableType*);
+        void BroadcastConditionVariable(ConditionVariableType*);
+        void WaitConditionVariable(ConditionVariableType*);
+        u8 TimedWaitConditionVariable(ConditionVariableType*, MutexType*, nn::TimeSpan);
 
         // THREAD
         Result CreateThread(nn::os::ThreadType *, void (*)(void *), void *arg, void *srcStack, u64 stackSize, s32 priority, s32 coreNum);
@@ -127,6 +162,15 @@ namespace nn
         void SuspendThread(nn::os::ThreadType *);
         void ResumeThread(nn::os::ThreadType *);
         void SleepThread(nn::TimeSpan);
+
+        // EVENTS
+        void InitializeEvent(EventType*, bool initiallySignaled, bool autoclear);
+        void FinalizeEvent(EventType*);
+        void SignalEvent(EventType*);
+        void WaitEvent(EventType*);
+        bool TryWaitEvent(EventType*);
+        bool TimedWaitEvent(EventType*, nn::TimeSpan);
+        void ClearEvent(EventType*);
 
         // EXCEPTION HANDLING
         typedef union {
