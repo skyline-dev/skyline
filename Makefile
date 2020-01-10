@@ -9,7 +9,7 @@ all: skyline
 
 skyline:
 	$(MAKE) all -f MakefileNSO CROSSVER=$(CROSSVER)
-	$(MAKE) skyline_patch_$(CROSSVER)/*.ips
+#	$(MAKE) skyline_patch_$(CROSSVER)/*.ips
 
 skyline_patch_$(CROSSVER)/*.ips: patches/*.slpatch patches/configs/$(CROSSVER).config patches/maps/$(CROSSVER)/*.map \
 								build$(CROSSVER)/$(shell basename $(CURDIR))$(CROSSVER).map scripts/genPatch.py

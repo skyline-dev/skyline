@@ -97,9 +97,12 @@ namespace nn
 
         Result Initialize();
 
-        void LookupSymbol(ulong *, char const*);
 
-        Result LoadModule(Module*, void const*, void*, ulong, int);
+        Result LookupSymbol(uintptr_t *pOutAddress, const char *name);
+
+        Result LookupModuleSymbol(uintptr_t *pOutAddress, const Module *pModule, const char *name);
+        Result LoadModule(Module *pOutModule, const void *pImage, void *buffer, size_t bufferSize,int flag);
+        // Result LoadModule(Module *pOutModule, const void *pImage, void *buffer, size_t bufferSize,int flag, bool isNotReferenced);
         Result UnloadModule(Module*);
         Result GetBufferSize(size_t*, const void*);
 

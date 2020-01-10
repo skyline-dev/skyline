@@ -23,7 +23,8 @@ namespace Plugin {
             nn::fs::GetFileSize(&fileSize, handle);
             nn::fs::CloseFile(handle);
 
-            plugin.Data = memalign(0x1000, fileSize);
+            plugin.Size = fileSize;
+            plugin.Data = memalign(0x1000, plugin.Size);
             skyline::Utils::readFile(path, 0, plugin.Data, plugin.Size);
             skyline::TcpLogger::LogFormat("Read %s", path.c_str());
         }
@@ -42,7 +43,7 @@ namespace Plugin {
 
         char* nrrBin = (char*) memalign(0x1000, nrrSize);
 
-        skyline::TcpLogger::LogFormat("Calculating hashes...");
+        skyline::TcpLogger::Log("Calculating hashes...");
         std::vector<Utils::Sha256Hash> sortedHashes;
         for(auto& kv : plugins){
             PluginInfo& plugin = kv.second;
@@ -58,13 +59,13 @@ namespace Plugin {
 
         memcpy(nrrBin, &nrr, sizeof(nn::ro::NrrHeader));
         
-        skyline::Utils::writeFile("sd:/test.nrr", 0, (void*) nrrBin, nrrSize);
+        //skyline::Utils::writeFile("sd:/test.nrr", 0, (void*) nrrBin, nrrSize);
 
         nn::ro::RegistrationInfo reg;
         Result r = nn::ro::RegisterModuleInfo(&reg, nrrBin);
-        skyline::TcpLogger::LogFormat("Registered the NRR.", r);
+        skyline::TcpLogger::Log("Registered the NRR.");
 
-        skyline::TcpLogger::LogFormat("Loading plugins...");
+        skyline::TcpLogger::Log("Loading plugins...");
         for(auto &kv : plugins){
             PluginInfo& plugin = kv.second;
 
@@ -73,9 +74,8 @@ namespace Plugin {
 
             void* buffer = memalign(0x1000, bufferSize);
 
-            nn::ro::Module module;
-            r = nn::ro::LoadModule(&module, plugin.Data, buffer, bufferSize, nn::ro::BindFlag_Now);
-            skyline::TcpLogger::LogFormat("Loaded %s", kv.first.c_str(), r);
+            r = nn::ro::LoadModule(&plugin.Module, plugin.Data, buffer, bufferSize, nn::ro::BindFlag_Now);
+            skyline::TcpLogger::LogFormat("Loaded %s", kv.first.c_str());
         }
     }
 

@@ -20,7 +20,7 @@ namespace skyline {
         static Result writeFile(std::string const&, s64, void*, size_t);
         
         struct Sha256Hash {
-            u8 hash[0x10];
+            u8 hash[0x20];
 
             bool operator==(const Sha256Hash &o) const {
                 return std::memcmp(this, &o, sizeof(*this)) == 0;

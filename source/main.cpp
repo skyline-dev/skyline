@@ -112,7 +112,7 @@ void runtimePatchMain(void*){
         reinterpret_cast<void*>(lookupCharacterFileHook), 
         (void**) &lookupCharacterFile);
        
-    hashes = new skyline::arc::Hashes();
+    //hashes = new skyline::arc::Hashes();
 
     nn::ro::Initialize();
     A64HookFunction(
