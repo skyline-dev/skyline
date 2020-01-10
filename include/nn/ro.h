@@ -97,9 +97,28 @@ namespace nn
 
         Result Initialize();
 
-        void LookupSymbol(ulong *, char const*);
-
-        Result LoadModule(Module*, void const*, void*, ulong, int);
+        /**
+        * Searches for the symbol with specified name from among all loaded modules.
+        *
+        * @param pOutAddress The address that stores the address of the symbol.
+        * @param name The symbol name to search for.
+        * @return Returns a nn::Result that represents the process result.
+        */
+        Result LookupSymbol(uintptr_t *pOutAddress, const char *name);
+        /**
+        * Searches for the symbol with the specified name inside the specified module.
+        *
+        * @param pOutAddress The address that stores the address of the symbol.
+        * @param pModule The address that stores the Module object.
+        * @param name The symbol name to search for.
+        * @return Returns a nn::Result that represents the process result.
+        */
+        Result LookupModuleSymbol(uintptr_t *pOutAddress, const Module *pModule, const char *name);
+        Result LoadModule(Module *pOutModule, const void *pImage, void *buffer, size_t bufferSize,int flag);
+        /**
+        * Loads the Module object.
+        */
+        // Result LoadModule(Module *pOutModule, const void *pImage, void *buffer, size_t bufferSize,int flag, bool isNotReferenced);
         Result UnloadModule(Module*);
         Result GetBufferSize(size_t*, const void*);
 

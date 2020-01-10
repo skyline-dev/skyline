@@ -23,6 +23,7 @@ namespace Plugin {
         void*  Data;
         size_t Size;
         Utils::Sha256Hash Hash;
+        nn::ro::Module Module;
     };
 
     class Manager {
