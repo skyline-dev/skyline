@@ -50,11 +50,11 @@ namespace Utils {
 
     template<typename T>
     void SafeQueue<T>::pop(std::shared_ptr<T*>* ptr){
-        nn::os::ReceiveMessageQueue(ptr, &queue);
+        nn::os::ReceiveMessageQueue((u64*) ptr, &queue);
     }   
     template<typename T>
     bool SafeQueue<T>::pop(std::shared_ptr<T*>* ptr, nn::TimeSpan span){
-        return nn::os::TimedReceiveMessageQueue(ptr, &queue, span);
+        return nn::os::TimedReceiveMessageQueue((u64*) ptr, &queue, span);
     }
 
     template<typename T>
@@ -64,7 +64,7 @@ namespace Utils {
 
     template<typename T>
     bool SafeQueue<T>::tryPop(std::shared_ptr<T*>* ptr){
-        return nn::os::TryReceiveMessageQueue(ptr, &queue);
+        return nn::os::TryReceiveMessageQueue((u64*) ptr, &queue);
     }
 
     template<typename T>
