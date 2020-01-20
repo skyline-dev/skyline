@@ -121,6 +121,17 @@ void runtimePatchMain(void*){
         NULL);
 
     skyline::Plugin::Manager::Init();
+
+    nvnInit(NULL);
+
+    NVNdeviceBuilder deviceBuilder;
+    nvnDeviceBuilderSetDefaults(&deviceBuilder);
+    nvnDeviceBuilderSetFlags(&deviceBuilder, 0);
+
+    NVNdevice device;
+    nvnDeviceInitialize(&device, &deviceBuilder);
+
+    nvnInit(&device); // re-init with our newly aquired device
 }
 
 void skylineMain() {

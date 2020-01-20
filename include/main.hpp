@@ -19,6 +19,7 @@
 #include "nn/fs.h"
 #include "nn/ro.h"
 #include "nn/crypto.h"
+#include "nvn/pfnc.h"
 
 #include "skyline/inlinehook/And64InlineHook.hpp"
 #include "skyline/logger/TcpLogger.hpp"
