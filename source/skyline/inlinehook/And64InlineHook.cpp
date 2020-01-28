@@ -123,8 +123,8 @@ static bool __fix_branch_imm(instruction inpp, instruction outpp, context *ctxp)
                          smcWriteAddress32(outpp[0], A64_NOP);
                         ctxp->reset_current_ins(current_idx, ++(*outpp));
                     } //if
-                    smcWriteAddress32(outpp[0], 0x58000051u); // LDR X17, #0x8
-                    smcWriteAddress32(outpp[1], 0xd61f0220u); // BR X17
+                    smcWriteAddress32(*outpp+0, 0x58000051u); // LDR X17, #0x8
+                    smcWriteAddress32(*outpp+1, 0xd61f0220u); // BR X17
                     smcMemCpy(*outpp + 2, &absolute_addr, sizeof(absolute_addr));
                     *outpp += 4;
                 } else {
@@ -132,9 +132,9 @@ static bool __fix_branch_imm(instruction inpp, instruction outpp, context *ctxp)
                         smcWriteAddress32(outpp[0], A64_NOP);
                         ctxp->reset_current_ins(current_idx, ++(*outpp));
                     } //if
-                    smcWriteAddress32(outpp[0], 0x58000071u); // LDR X17, #12
-                    smcWriteAddress32(outpp[1], 0x1000009eu); // ADR X30, #16
-                    smcWriteAddress32(outpp[2],  0xd61f0220u); // BR X17
+                    smcWriteAddress32(*outpp+0, 0x58000071u); // LDR X17, #12
+                    smcWriteAddress32(*outpp+1, 0x1000009eu); // ADR X30, #16
+                    smcWriteAddress32(*outpp+2,  0xd61f0220u); // BR X17
                     smcMemCpy(*outpp + 3, &absolute_addr, sizeof(absolute_addr));
                     *outpp += 5;
                 } //if
@@ -198,10 +198,10 @@ static bool __fix_cond_comp_test_branch(instruction inpp, instruction outpp, con
             smcWriteAddress32(outpp[0], A64_NOP);
             ctxp->reset_current_ins(current_idx, ++(*outpp));
         } //if
-        smcWriteAddress32(outpp[0], (((8u >> 2u) << lsb) & ~lmask) | (ins & lmask)); // B.C #0x8
-        smcWriteAddress32(outpp[1], 0x14000005u); // B #0x14
-        smcWriteAddress32(outpp[2], 0x58000051u); // LDR X17, #0x8
-        smcWriteAddress32(outpp[3], 0xd61f0220u); // BR X17
+        smcWriteAddress32(*outpp+0, (((8u >> 2u) << lsb) & ~lmask) | (ins & lmask)); // B.C #0x8
+        smcWriteAddress32(*outpp+1, 0x14000005u); // B #0x14
+        smcWriteAddress32(*outpp+2, 0x58000051u); // LDR X17, #0x8
+        smcWriteAddress32(*outpp+3, 0xd61f0220u); // BR X17
         smcMemCpy(*outpp + 4, &absolute_addr, sizeof(absolute_addr));
         *outpp += 6;
     } else {
@@ -283,8 +283,8 @@ static bool __fix_loadlit(instruction inpp, instruction outpp, context *ctxp)
         // Note that if memory at absolute_addr is writeable (non-const), we will fail to fetch it.
         // And what's worse, we may unexpectedly overwrite something if special_fix_type is true...
         uint32_t ns = static_cast<uint32_t>((faligned + 1) / sizeof(uint32_t));
-        smcWriteAddress32(outpp[0], (((8u >> 2u) << lsb) & ~mask) | (ins & lmask)); // LDR #0x8
-        smcWriteAddress32(outpp[1], 0x14000001u + ns); // B #0xc
+        smcWriteAddress32(*outpp+0, (((8u >> 2u) << lsb) & ~mask) | (ins & lmask)); // LDR #0x8
+        smcWriteAddress32(*outpp+1, 0x14000001u + ns); // B #0xc
         smcMemCpy(*outpp + 2, reinterpret_cast<void *>(absolute_addr), faligned + 1);
         *outpp += 2 + ns;
     } else {
@@ -336,8 +336,8 @@ static bool __fix_pcreladdr(instruction inpp, instruction outpp, context *ctxp)
                     ctxp->reset_current_ins(current_idx, ++(*outpp));
                 } //if
 
-                smcWriteAddress32(outpp[0], 0x58000000u | (((8u >> 2u) << lsb) & ~mask) | (ins & rmask)); // LDR #0x8
-                smcWriteAddress32(outpp[1], 0x14000003u); // B #0xc
+                smcWriteAddress32(*outpp+0, 0x58000000u | (((8u >> 2u) << lsb) & ~mask) | (ins & rmask)); // LDR #0x8
+                smcWriteAddress32(*outpp+1, 0x14000003u); // B #0xc
                 smcMemCpy(*outpp + 2, &absolute_addr, sizeof(absolute_addr));
                 *outpp += 4;
             } else {
@@ -373,8 +373,8 @@ static bool __fix_pcreladdr(instruction inpp, instruction outpp, context *ctxp)
                     ctxp->reset_current_ins(current_idx, ++(*outpp));
                 } //if
 
-                smcWriteAddress32(outpp[0], 0x58000000u | (((8u >> 2u) << lsb) & ~mask) | (ins & rmask)); // LDR #0x8
-                smcWriteAddress32(outpp[1], 0x14000003u); // B #0xc
+                smcWriteAddress32(*outpp+0, 0x58000000u | (((8u >> 2u) << lsb) & ~mask) | (ins & rmask)); // LDR #0x8
+                smcWriteAddress32(*outpp+1, 0x14000003u); // B #0xc
                 smcMemCpy(*outpp + 2, &absolute_addr, sizeof(absolute_addr)); // potential overflow?
                 *outpp += 4;
             } //if
@@ -425,9 +425,9 @@ static void __fix_instructions(uint32_t *__restrict inp, int32_t count, uint32_t
             smcWriteAddress32(&outp[0], A64_NOP);
             ++outp;
         } //if
-        smcWriteAddress32(&outp[0], 0x58000051u); // LDR X17, #0x8
-        smcWriteAddress32(&outp[1], 0xd61f0220u); // BR X17
-        smcWriteAddress64((u64*)(outp + 2), callback);
+        smcWriteAddress32((u32*)outp, 0x58000051u); // LDR X17, #0x8
+        smcWriteAddress32((u32*)(outp+1), 0xd61f0220u); // BR X17
+        smcWriteAddress64((u64*)(outp+2), callback);
         outp += 4;
     } else {
         smcWriteAddress32(&outp[0], 0x14000000u | (pc_offset & mask)); // "B" ADDR_PCREL26
@@ -513,9 +513,9 @@ typedef uint32_t insns_t[A64_MAX_BACKUPS][A64_MAX_INSTRUCTIONS * 10];
                 smcWriteAddress32(&original[0], A64_NOP);
                 ++original;
             } //if
-            smcWriteAddress32(&original[0], 0x58000051u); // LDR X17, #0x8
-            smcWriteAddress32(&original[1], 0xd61f0220u); // BR X17
-            smcWriteAddress64(original + 2,  __intval(replace));
+            smcWriteAddress32((u32*)(original+0), 0x58000051u); // LDR X17, #0x8
+            smcWriteAddress32((u32*)(original+1), 0xd61f0220u); // BR X17
+            smcWriteAddress64(original+2,  __intval(replace));
             __flush_cache(symbol, 5 * sizeof(uint32_t));
             
         } else {
