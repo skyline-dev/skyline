@@ -1,13 +1,37 @@
 #include "skyline/utils/cpputils.hpp"
+#include "nn/nn.h"
 
 namespace skyline {
+
+    nn::os::EventType utils::g_RomMountedEvent;
+    
+    u64 utils::g_MainTextAddr;
+    u64 utils::g_MainRodataAddr;
+    u64 utils::g_MainDataAddr;
+    u64 utils::g_MainBssAddr;
+    u64 utils::g_MainHeapAddr;
+
+    skyline::arc::Hashes* utils::g_Hashes;
+
+    void utils::populateMainAddrs(){
+        // find .text
+        skyline::utils::g_MainTextAddr = memGetMapAddr((u64)nninitStartup); // nninitStartup can be reasonably assumed to be exported by main
+        // find .rodata
+        skyline::utils::g_MainRodataAddr = memNextMap(skyline::utils::g_MainTextAddr);
+        // find .data
+        skyline::utils::g_MainDataAddr = memNextMap(skyline::utils::g_MainRodataAddr);
+        // find .bss
+        skyline::utils::g_MainBssAddr = memNextMap(skyline::utils::g_MainDataAddr);
+        // find heap
+        utils::g_MainHeapAddr = memNextMapOfType(utils::g_MainBssAddr, MemType_Heap);
+    }
 
     bool endsWith(std::string const& str1, std::string const& str2){
         return str2.size() <= str1.size()
             && str1.find(str2, str1.size() - str2.size()) != str1.npos;
     }
 
-    Result Utils::walkDirectory(std::string const& root, std::function<void(nn::fs::DirectoryEntry const&, std::shared_ptr<std::string>)> callback) {
+    Result utils::walkDirectory(std::string const& root, std::function<void(nn::fs::DirectoryEntry const&, std::shared_ptr<std::string>)> callback) {
         Result r;
 
         nn::fs::DirectoryHandle rootHandle;
@@ -17,16 +41,15 @@ namespace skyline {
         r = nn::fs::GetDirectoryEntryCount(&entryCount, rootHandle);
         if(R_FAILED(r)){
             nn::fs::CloseDirectory(rootHandle);
-
             return r;
         }
 
         nn::fs::DirectoryEntry* entryBuffer = new nn::fs::DirectoryEntry[entryCount];
         r = nn::fs::ReadDirectory(&entryCount, entryBuffer, rootHandle, entryCount);
+        nn::fs::CloseDirectory(rootHandle);
+
         if(R_FAILED(r)){
             delete[] entryBuffer;
-            nn::fs::CloseDirectory(rootHandle);
-
             return r;
         }
 
@@ -46,8 +69,6 @@ namespace skyline {
 
             if(R_FAILED(r)){
                 delete[] entryBuffer;
-                nn::fs::CloseDirectory(rootHandle);
-
                 return r;
             }
 
@@ -55,12 +76,10 @@ namespace skyline {
         }
         
         delete[] entryBuffer;
-        nn::fs::CloseDirectory(rootHandle);
-
         return r;
     }
 
-    Result Utils::readEntireFile(std::string const& str, void** dataptr, u64* length) {
+    Result utils::readEntireFile(std::string const& str, void** dataptr, u64* length) {
         if(dataptr == NULL)
             return -1;
         nn::fs::FileHandle handle;
@@ -80,7 +99,6 @@ namespace skyline {
         void* bin = malloc(size);
         r = nn::fs::ReadFile(handle, 0, bin, size);
         if(R_FAILED(r)){
-            // file reading failed, cleanup
             free(bin);
         } else
             *dataptr = bin;
@@ -88,7 +106,7 @@ namespace skyline {
         return r;
     }
 
-    Result Utils::readFile(std::string const& str, s64 offset, void* data, size_t length){
+    Result utils::readFile(std::string const& str, s64 offset, void* data, size_t length){
         if(data == NULL)
             return -1;
         nn::fs::FileHandle handle;
@@ -110,7 +128,7 @@ namespace skyline {
         return r;
     }
 
-    Result Utils::writeFile(std::string const& str, s64 offset, void* data, size_t length){
+    Result utils::writeFile(std::string const& str, s64 offset, void* data, size_t length){
 
         nn::fs::DirectoryEntryType entryType;
         Result rc = nn::fs::GetEntryType(&entryType, str.c_str());

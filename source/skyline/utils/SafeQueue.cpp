@@ -1,10 +1,14 @@
 #include "skyline/utils/SafeQueue.hpp"
 
 namespace skyline {
-namespace Utils {
+namespace utils {
 
     Task::Task(){
-        nn::os::InitializeEvent(&completionEvent, false, true);
+        nn::os::InitializeEvent(&completionEvent, false, nn::os::EventClearMode_AutoClear);
+    }
+
+    Task::Task(std::function<void()> taskFunc) : Task(){
+        this->taskFunc = taskFunc;
     }
 
     Task::~Task(){
@@ -16,61 +20,42 @@ namespace Utils {
         queue->_threadEntrypoint();
     }
 
+    SafeTaskQueue::SafeTaskQueue(u64 count) : SafeQueue::SafeQueue(count) {
+
+    }
+
     void SafeTaskQueue::startThread(s32 priority, s32 core, u64 stackSize) {
-        void* stack = malloc(stackSize);
-        nn::os::CreateThread(&thread, entrypoint, this, stack, stackSize, priority, core);
+        skyline::TcpLogger::Log("[SafeTaskQueue] Starting thread.");
+        void* stack = memalign(0x1000, stackSize);
+        Result rc = nn::os::CreateThread(&thread, entrypoint, this, stack, stackSize, priority, core);
+        if(R_FAILED(rc)){
+            skyline::TcpLogger::Log("[SafeTaskQueue] Failed to create thread (0x%x).", rc);
+        }
+
+        nn::os::StartThread(&thread);
     }
 
     void SafeTaskQueue::_threadEntrypoint(){
+        skyline::TcpLogger::Log("[SafeTaskQueue] Thread started.");
         while(true){
-            std::shared_ptr<Task*> task;
-            if(pop(&task, nn::TimeSpan::FromNanoSeconds(10000000))){
-                (*task)->taskFunc();
-                nn::os::SignalEvent(&(*task)->completionEvent);
-                nn::os::FinalizeEvent(&(*task)->completionEvent);
+            std::unique_ptr<Task>* taskptr;
+            if(pop(&taskptr, nn::TimeSpan::FromNanoSeconds(10000000))){
+                Task* task = taskptr->get();
+
+                // run task
+                task->taskFunc();
+
+                // signal that the task is complete
+                nn::os::SignalEvent(&task->completionEvent);
+
+                // release task, freeing event
+                taskptr->release();
+                
+                
+                delete taskptr;
             }
         }
     }
 
-    template<typename T>
-    SafeQueue<T>::SafeQueue(u64 count) {
-        buffer = new T[count];
-        nn::os::InitializeMessageQueue(&queue, buffer, sizeof(T) * count);
-    }
-
-    template<typename T>
-    void SafeQueue<T>::push(std::shared_ptr<T*> ptr){
-        nn::os::SendMessageQueue(&queue, (u64) ptr);
-    }
-
-    template<typename T>
-    bool SafeQueue<T>::push(std::shared_ptr<T*> ptr, nn::TimeSpan span){
-        return nn::os::TimedSendMessageQueue(&queue, (u64) ptr, span);
-    }
-
-    template<typename T>
-    void SafeQueue<T>::pop(std::shared_ptr<T*>* ptr){
-        nn::os::ReceiveMessageQueue((u64*) ptr, &queue);
-    }   
-    template<typename T>
-    bool SafeQueue<T>::pop(std::shared_ptr<T*>* ptr, nn::TimeSpan span){
-        return nn::os::TimedReceiveMessageQueue((u64*) ptr, &queue, span);
-    }
-
-    template<typename T>
-    bool SafeQueue<T>::tryPush(std::shared_ptr<T*> ptr){
-        return nn::os::TrySendMessageQueue(&queue, (u64) ptr);
-    }
-
-    template<typename T>
-    bool SafeQueue<T>::tryPop(std::shared_ptr<T*>* ptr){
-        return nn::os::TryReceiveMessageQueue((u64*) ptr, &queue);
-    }
-
-    template<typename T>
-    SafeQueue<T>::~SafeQueue(){
-        nn::os::FinalizeMessageQueue(&queue);
-        delete[] buffer;
-    }
 };
 };

@@ -1,35 +1,43 @@
 #include "skyline/plugin/PluginManager.hpp"
 
 namespace skyline {
-namespace Plugin {
+namespace plugin {
 
     void Manager::Init() {
-        skyline::TcpLogger::LogFormat("Initializing plugins...");
+        Result rc;
+
+        skyline::TcpLogger::LogFormat("[PluginManager] Initializing plugins...");
         std::unordered_map<std::string, PluginInfo> plugins;
-        skyline::Utils::walkDirectory("rom:/skyline/plugins", [&plugins](nn::fs::DirectoryEntry const& entry, std::shared_ptr<std::string> path) {
+        skyline::utils::walkDirectory("rom:/skyline/plugins", [&plugins](nn::fs::DirectoryEntry const& entry, std::shared_ptr<std::string> path) {
             if(entry.type == nn::fs::DirectoryEntryType_File)
                 plugins[*path] = PluginInfo();
         });
         
-        skyline::TcpLogger::LogFormat("Opening plugins...");
+        skyline::TcpLogger::LogFormat("[PluginManager] Opening plugins...");
         for(auto& kv : plugins){
             std::string path = kv.first;
             PluginInfo& plugin = kv.second;
 
             // grab file size
             nn::fs::FileHandle handle;
-            nn::fs::OpenFile(&handle, path.c_str(), nn::fs::OpenMode_Read);
+            rc = nn::fs::OpenFile(&handle, path.c_str(), nn::fs::OpenMode_Read);
+            if(R_FAILED(rc)){
+                skyline::TcpLogger::LogFormat("[PluginManager] Failed to open '%s' (0x%x). Skipping.", path.c_str(), rc);
+                continue;
+            }
+
             s64 fileSize;
             nn::fs::GetFileSize(&fileSize, handle);
             nn::fs::CloseFile(handle);
 
             plugin.Size = fileSize;
             plugin.Data = memalign(0x1000, plugin.Size);
-            skyline::Utils::readFile(path, 0, plugin.Data, plugin.Size);
-            skyline::TcpLogger::LogFormat("Read %s", path.c_str());
+
+            skyline::utils::readFile(path, 0, plugin.Data, plugin.Size);
+            skyline::TcpLogger::LogFormat("[PluginManager] Read %s", path.c_str());
         }
 
-        size_t nrrSize = ALIGN_UP(sizeof(nn::ro::NrrHeader) + (plugins.size() * sizeof(Utils::Sha256Hash)), 0x1000);
+        size_t nrrSize = ALIGN_UP(sizeof(nn::ro::NrrHeader) + (plugins.size() * sizeof(utils::Sha256Hash)), 0x1000);
 
         nn::ro::NrrHeader nrr;
         memset(&nrr, 0, sizeof(nn::ro::NrrHeader));
@@ -43,29 +51,31 @@ namespace Plugin {
 
         char* nrrBin = (char*) memalign(0x1000, nrrSize);
 
-        skyline::TcpLogger::Log("Calculating hashes...");
-        std::vector<Utils::Sha256Hash> sortedHashes;
+        skyline::TcpLogger::Log("[PluginManager] Calculating hashes...");
+        std::vector<utils::Sha256Hash> sortedHashes;
         for(auto& kv : plugins){
             PluginInfo& plugin = kv.second;
             nn::ro::NroHeader* nro = (nn::ro::NroHeader*) plugin.Data;
-            nn::crypto::GenerateSha256Hash(&plugin.Hash, sizeof(Utils::Sha256Hash), nro, nro->size);
+            nn::crypto::GenerateSha256Hash(&plugin.Hash, sizeof(utils::Sha256Hash), nro, nro->size);
             sortedHashes.push_back(plugin.Hash);
         }
         std::sort(sortedHashes.begin(), sortedHashes.end());
         
-        Utils::Sha256Hash* hashes = reinterpret_cast<Utils::Sha256Hash*>((u64)(nrrBin) + nrr.hashes_offset);
+        utils::Sha256Hash* hashes = reinterpret_cast<utils::Sha256Hash*>((u64)(nrrBin) + nrr.hashes_offset);
         for(auto& hash : sortedHashes)
             *hashes++ = hash;
 
         memcpy(nrrBin, &nrr, sizeof(nn::ro::NrrHeader));
         
-        //skyline::Utils::writeFile("sd:/test.nrr", 0, (void*) nrrBin, nrrSize);
-
         nn::ro::RegistrationInfo reg;
-        Result r = nn::ro::RegisterModuleInfo(&reg, nrrBin);
-        skyline::TcpLogger::Log("Registered the NRR.");
+        rc = nn::ro::RegisterModuleInfo(&reg, nrrBin);
+        if(R_FAILED(rc)){
+            free(nrrBin);
+            skyline::TcpLogger::Log("[PluginManager] Failed to register NRR (0x%x).", rc);
+            return;
+        }
 
-        skyline::TcpLogger::Log("Loading plugins...");
+        skyline::TcpLogger::Log("[PluginManager] Loading plugins...");
         for(auto &kv : plugins){
             PluginInfo& plugin = kv.second;
 
@@ -74,8 +84,14 @@ namespace Plugin {
 
             void* buffer = memalign(0x1000, bufferSize);
 
-            r = nn::ro::LoadModule(&plugin.Module, plugin.Data, buffer, bufferSize, nn::ro::BindFlag_Now);
-            skyline::TcpLogger::LogFormat("Loaded %s", kv.first.c_str());
+            rc = nn::ro::LoadModule(&plugin.Module, plugin.Data, buffer, bufferSize, nn::ro::BindFlag_Now);
+            skyline::TcpLogger::LogFormat("[PluginManager] Loaded %s", kv.first.c_str());
+
+            void (*pluginEntrypoint)();
+            nn::ro::LookupModuleSymbol(
+                reinterpret_cast<uintptr_t*>(&pluginEntrypoint), 
+                &plugin.Module, 
+                "");
         }
     }
 

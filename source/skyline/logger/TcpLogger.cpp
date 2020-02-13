@@ -13,17 +13,18 @@ namespace skyline {
 
         TcpLogger::Initialize();
 
-        TcpLogger::LogFormat("Skyline init!");
+        TcpLogger::LogFormat("[TcpLogger] Connection established.");
 
         while(true){
             TcpLogger::ClearQueue();
-            nn::os::SleepThread(nn::TimeSpan::FromNanoSeconds(100000000));
+            nn::os::YieldThread(); // let other parts of OS do their thing
+            //nn::os::SleepThread(nn::TimeSpan::FromNanoSeconds(100000000));
         }
     }
 
     void stub() {};
 
-    // must be ran on core 3
+    // *Must* be ran on core 3
     void TcpLogger::StartThread(){
         const size_t poolSize = 0x100000;
         void* socketPool = memalign(0x4000, poolSize);
@@ -79,6 +80,7 @@ namespace skyline {
         while (!g_msgQueue->empty())
         {
             auto data = g_msgQueue->front();
+
             SendRaw(data, strlen(data));
             delete[] data;
             g_msgQueue->pop();
@@ -95,17 +97,26 @@ namespace skyline {
         if(g_tcpSocket & 0x80000000)
             return;
 
-        nn::socket::InetAton(IP, (nn::socket::InAddr*) &serverAddr.sin_addr.s_addr);
+        int flags = 1;
+        nn::socket::SetSockOpt(g_tcpSocket, SOL_SOCKET, SO_KEEPALIVE, &flags, sizeof(flags));
+
         serverAddr.sin_family      = AF_INET;
+        serverAddr.sin_addr.s_addr = INADDR_ANY;
         serverAddr.sin_port        = nn::socket::InetHtons(PORT);
 
-        int rval = nn::socket::Connect(g_tcpSocket, (struct sockaddr*)&serverAddr, sizeof(serverAddr));
+        int rval = nn::socket::Bind(g_tcpSocket, (struct sockaddr*)&serverAddr, sizeof(serverAddr));
         if (rval < 0)
             return;
-
-        //g_loggerInit = true;
         
-        TcpLogger::Log("socket initialized!");
+        rval = nn::socket::Listen(g_tcpSocket, 1);
+        if(rval < 0)
+            return;
+
+        u32 addrLen;
+        g_tcpSocket = nn::socket::Accept(g_tcpSocket, (struct sockaddr*)&serverAddr, &addrLen);  
+
+        g_loggerInit = true;
+        
         TcpLogger::ClearQueue();
     }
 
@@ -123,14 +134,8 @@ namespace skyline {
         memcpy(ptr, data, size);
         ptr[size] = '\n';
 
-        if (!g_loggerInit)
-        {
-            AddToQueue(ptr);
-            return;
-        }
-
-        SendRaw(ptr, size);
-        delete[] ptr;
+        AddToQueue(ptr);
+        return;
     }
 
     void TcpLogger::Log(std::string str)
@@ -141,13 +146,18 @@ namespace skyline {
     void TcpLogger::LogFormat(const char* format, ...)
     {
         va_list args;
-        char buff[0x1000] = {0};
         va_start(args, format);
 
-        int len = vsnprintf(buff, sizeof(buff), format, args);
-        
-        TcpLogger::Log(buff, len);
-        
+        size_t len = vsnprintf(NULL, 0, format, args);
+        char* ptr = new char[len+2];
+        memset(ptr, 0, len+2);
+        vsnprintf(ptr, len+1, format, args);
+        ptr[len] = '\n';
+         
+        AddToQueue(ptr);
         va_end (args);
+
+        return;
+
     }
 };

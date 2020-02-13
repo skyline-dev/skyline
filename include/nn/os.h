@@ -42,6 +42,10 @@ namespace nn
             nn::os::detail::InternalConditionVariable condvar;
         };
         typedef EventType Event;
+
+        enum EventClearMode {
+            EventClearMode_ManualClear, EventClearMode_AutoClear
+        };
         
         struct ThreadType 
         {
@@ -61,10 +65,11 @@ namespace nn
             detail::InternalCriticalSection Crit;
             detail::InternalConditionVariable Condvar;
             u32 Handle;
-            u8 padding[0x20];
+            u8 padding[0x18];
 
             ThreadType() {};
         };
+         static_assert(sizeof(ThreadType) == 0x1C0, "");
 
         struct MessageQueueType {
             u64 _x0;
@@ -124,7 +129,7 @@ namespace nn
         void FinalizeMessageQueue(nn::os::MessageQueueType *);
 
         bool TrySendMessageQueue(MessageQueueType*, u64);
-        void SendMessageQueue(MessageQueueType*, u64*);
+        void SendMessageQueue(MessageQueueType*, u64);
         bool TimedSendMessageQueue(MessageQueueType *, u64, nn::TimeSpan);
 
         bool TryReceiveMessageQueue(u64* out, MessageQueueType*);
@@ -164,7 +169,7 @@ namespace nn
         void SleepThread(nn::TimeSpan);
 
         // EVENTS
-        void InitializeEvent(EventType*, bool initiallySignaled, bool autoclear);
+        void InitializeEvent(EventType*, bool initiallySignaled, EventClearMode clearMode);
         void FinalizeEvent(EventType*);
         void SignalEvent(EventType*);
         void WaitEvent(EventType*);

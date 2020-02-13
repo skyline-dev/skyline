@@ -12,35 +12,46 @@ u32 previousPowerOfTwo(u32 x) {
     return x - (x >> 1);
 }
 
-u64 memNextMap(u64 addr) {
-    MemoryInfo info;
+Result memGetMap(MemoryInfo* info, u64 addr){
     u32 map;
-    svcQueryMemory(&info, &map, addr);
+    return svcQueryMemory(info, &map, addr);
+}
 
-    if(addr == info.addr  && info.type != MemType_Unmapped)
-        return addr;
+u64 memGetMapAddr(u64 addr){
+    MemoryInfo map;
+    memGetMap(&map, addr);
+    return map.addr;
+}
 
-    return memNextMap(info.addr + info.size); 
+u64 memNextMap(u64 addr) {
+    MemoryInfo map;
+    memGetMap(&map, addr);
+    memGetMap(&map, map.addr + map.size);
+
+    if(map.type != MemType_Unmapped)
+        return map.addr;
+
+    return memNextMap(map.addr); 
 }
 
 u64 memNextMapOfType(u64 addr, u32 type){
-    MemoryInfo info;
-    u32 map;
-    svcQueryMemory(&info, &map, addr);
+    MemoryInfo map;
+    memGetMap(&map, addr);
+    memGetMap(&map, map.addr + map.size);
 
-    if(info.type == type)
-        return info.addr;
+    if(map.type == type)
+        return map.addr;
 
-    return memNextMapOfType(info.addr + info.size , type); 
+    return memNextMapOfType(map.addr, type); 
 }
 
 u64 memNextMapOfPerm(u64 addr, u32 perm){
-    MemoryInfo info;
-    u32 map;
-    svcQueryMemory(&info, &map, addr);
+    MemoryInfo map;
+    memGetMap(&map, addr);
+    memGetMap(&map, map.addr + map.size);
 
-    if(info.perm == perm)
-        return info.addr;
+    if(map.perm == perm)
+        return map.addr;
 
-    return memNextMapOfType(info.addr + info.size , perm); 
+    return memNextMapOfType(map.addr, perm); 
 }

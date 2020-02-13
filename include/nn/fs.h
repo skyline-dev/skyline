@@ -75,7 +75,7 @@ namespace nn
         // ROM
         Result QueryMountRomCacheSize(u64 *size);
         Result QueryMountRomCacheSize(u64 *size, nn::ApplicationId);
-        Result MountRom(char const *name, void *buffer, u64 bufferSize);
+        Result MountRom(char const *name, void *buffer, ulong bufferSize);
         Result CanMountRomForDebug();
         Result CanMountRom(nn::ApplicationId);
         Result QueryMountRomOnFileCacheSize(u64 *, nn::fs::FileHandle);

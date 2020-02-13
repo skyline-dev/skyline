@@ -46,7 +46,7 @@ typedef u32 Handle;
 typedef void (*ThreadFunc)(void *);
 
 #ifndef BIT
-#define BIT(n) (1U<<(n))
+#define BIT(n) (1ULL<<(n))
 #endif
 
 #ifndef PACKED

@@ -17,12 +17,12 @@
 #include <algorithm>
 
 namespace skyline {
-namespace Plugin {
+namespace plugin {
     class PluginInfo {
         public:
         void*  Data;
         size_t Size;
-        Utils::Sha256Hash Hash;
+        utils::Sha256Hash Hash;
         nn::ro::Module Module;
     };
 

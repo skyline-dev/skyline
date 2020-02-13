@@ -40,12 +40,17 @@ extern "C" {
     #include "../nx/result.h"
     #include "../nx/smc.h"
     #include "../nx/kernel/jit.h"
+    #include "nn/os.h"
+
+    struct InlineCtx {
+        nn::os::CpuRegister registers[29];
+    };
 
     void A64HookInit();
     void A64HookFunction(void *const symbol, void *const replace, void **result);
     void *A64HookFunctionV(void *const symbol, void *const replace,
                            void *const rwx, const uintptr_t rwx_size);
-
+    void A64InlineHook(void *const symbol, void *const replace);
 #ifdef __cplusplus
 }
 #endif
