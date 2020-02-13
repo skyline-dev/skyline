@@ -61,7 +61,7 @@ void lookupCharacterFileHook(uint* result, char* path){
     skyline::TcpLogger::LogFormat("%s | 0x%x\n", path, *result);
 }
 
-skyline::arc::Hashes* hashes;
+
 
 void stub() {}
 
