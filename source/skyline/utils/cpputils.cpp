@@ -3,6 +3,8 @@
 
 namespace skyline {
 
+    std::string utils::g_RomMountStr;
+
     nn::os::EventType utils::g_RomMountedEvent;
     
     u64 utils::g_MainTextAddr;

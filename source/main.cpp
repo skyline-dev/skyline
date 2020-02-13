@@ -70,6 +70,7 @@ Result (*nnFsMountRomImpl)(char const*, void*, unsigned long);
 Result handleNnFsMountRom(char const* path, void* buffer, unsigned long size){
     Result rc = nnFsMountRomImpl(path, buffer, size);
     skyline::TcpLogger::LogFormat("[handleNnFsMountRom] Mounted ROM (0x%x)", rc);
+    skyline::utils::g_RomMountStr = std::string(path) + ":/";
     nn::os::SignalEvent(&skyline::utils::g_RomMountedEvent);
     return rc;
 }

@@ -1,6 +1,5 @@
 #include "skyline/logger/TcpLogger.hpp"
 
-#define IP      "10.4.1.157"
 #define PORT    6969
 
 namespace skyline {

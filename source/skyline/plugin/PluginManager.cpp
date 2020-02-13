@@ -8,7 +8,7 @@ namespace plugin {
 
         skyline::TcpLogger::LogFormat("[PluginManager] Initializing plugins...");
         std::unordered_map<std::string, PluginInfo> plugins;
-        skyline::utils::walkDirectory("rom:/skyline/plugins", [&plugins](nn::fs::DirectoryEntry const& entry, std::shared_ptr<std::string> path) {
+        skyline::utils::walkDirectory(utils::g_RomMountStr + "skyline/plugins", [&plugins](nn::fs::DirectoryEntry const& entry, std::shared_ptr<std::string> path) {
             if(entry.type == nn::fs::DirectoryEntryType_File)
                 plugins[*path] = PluginInfo();
         });
