@@ -122,6 +122,7 @@ void runtimePatchMain(void*){
             smcMemCpy(verPtr, (void*)skylineStr, skylineStrLen+1); //+1 to write null terminator
         }
     };
+    
     taskQueue->push(new std::unique_ptr<skyline::utils::Task>(patchVersionTask));
 
     // override exception handler to dump info 
@@ -167,7 +168,7 @@ void runtimePatchMain(void*){
     taskQueue->push(new std::unique_ptr<skyline::utils::Task>(initHashesTask));
 
 
-    skyline::Plugin::Manager::Init();
+
 
     // crashes this early in init...
     /*nvnInit(NULL);
