@@ -20,7 +20,10 @@ void __custom_init(void) {
     skylineMain(); 
 }
 
-void __custom_fini(void) {}
+void __custom_fini(void) {
+    for ( func_ptr* func = __fini_array_start__; func != __fini_array_end__; func++ )
+        (*func)();
+}
 
 // unused in the context of NSOs
 void skylineInit(void* ctx, Handle main_thread, LoaderReturnFn saved_lr){
