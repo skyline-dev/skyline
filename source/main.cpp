@@ -1,17 +1,5 @@
 #include "main.hpp"
 
-extern "C" {
-    void __custom_init(void) {  skylineMain(); }
-    void __custom_fini(void) {}
-
-    void *__dso_handle; // for linking with libc++
-
-    // unused in the context of NSOs
-    extern "C" void skylineInit(void* ctx, Handle main_thread, LoaderReturnFn saved_lr){
-        *((u64*)0) = 0x69;
-    }
-}
-
 nn::os::ThreadType runtimePatchThread;
 char ALIGNA(0x1000) runtimePatchStack[0x7000];
 
@@ -185,7 +173,7 @@ void runtimePatchMain(void*){
     */
 }
 
-void skylineMain() {
+extern "C" void skylineMain() {
     skyline::utils::populateMainAddrs();
     virtmemSetup();
 

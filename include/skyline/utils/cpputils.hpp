@@ -14,6 +14,8 @@
 
 namespace skyline {
     namespace utils {
+        extern std::string g_RomMountStr;
+
         extern nn::os::EventType g_RomMountedEvent;
 
         extern u64 g_MainTextAddr;

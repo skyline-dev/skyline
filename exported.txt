@@ -2,7 +2,6 @@
     global:
         __custom_init;
         __custom_fini;
-        _init;
         
     local: *;
 };  
