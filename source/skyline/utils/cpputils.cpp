@@ -3,7 +3,7 @@
 
 namespace skyline {
 
-    std::string utils::g_RomMountStr;
+    std::string utils::g_RomMountStr = "rom:/";
 
     nn::os::EventType utils::g_RomMountedEvent;
     
