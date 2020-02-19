@@ -12,7 +12,8 @@ ifeq (, $(shell which python3))
 endif
 
 NAME 			:= $(shell basename $(CURDIR))
-PATCH 			:= skyline_patch_$(CROSSVER)
+NAME_LOWER		:= $(shell echo $(NAME) | tr A-Z a-z)
+PATCH 			:= $(NAME_LOWER)_patch_$(CROSSVER)
 
 PATCH_DIR 		:= patches
 BUILD_DIR 		:= build$(CROSSVER)
