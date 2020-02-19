@@ -29,21 +29,11 @@ include $(DEVKITPRO)/libnx/switch_rules
 # DATA is a list of directories containing data files
 # INCLUDES is a list of directories containing header files
 #---------------------------------------------------------------------------------
+
+# NOTE: TARGET and BUILD are now passed from parent Makefile
 TARGET		?=	$(notdir $(CURDIR))$(CROSSVER)
 BUILD		?=	build$(CROSSVER)
-SOURCES		:= 	source \
-					source/nvn \
-					source/skyline \
-					source/skyline/nx \
-					source/skyline/nx/arm \
-					source/skyline/nx/kernel \
-					source/skyline/nx/runtime \
-					source/skyline/nx/sf \
-					source/skyline/inlinehook \
-					source/skyline/logger \
-					source/skyline/utils \
-					source/skyline/arc \
-					source/skyline/plugin
+SOURCES		:= 	source $(filter-out %.c %.cpp %.s,$(wildcard source/* source/*/* source/*/*/* source/*/*/*/*))
 DATA		:=	data
 INCLUDES	:=	include
 
