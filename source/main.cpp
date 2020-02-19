@@ -129,7 +129,7 @@ void runtimePatchMain(void*){
 
     // data.arc interception hooks
     A64HookFunction(
-        reinterpret_cast<void*>(text + 0x3126030), 
+        reinterpret_cast<void*>(atexit + 0x3126030), 
         reinterpret_cast<void*>(lookupCharacterFileHook), 
         (void**) &lookupCharacterFile);
        

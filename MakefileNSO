@@ -173,7 +173,7 @@ DEPENDS	:=	$(OFILES:.o=.d)
 	@echo built ... $(notdir $@)
 
 #---------------------------------------------------------------------------------
-all	: $(OUTPUT).nso $(OUTPUT).nro $(OUTPUT).nacp
+all	: $(OUTPUT).nso
 
 $(OUTPUT).elf   : $(OFILES)
 
