@@ -35,7 +35,7 @@ MAKE_NSO		:= MakefileNSO
 all: skyline
 
 skyline:
-	$(MAKE) all -f $(MAKE_NSO) CROSSVER=$(CROSSVER) BUILD=$(BUILD_DIR) TARGET=$(NAME)
+	$(MAKE) all -f $(MAKE_NSO) CROSSVER=$(CROSSVER) BUILD=$(BUILD_DIR) TARGET=$(NAME)$(CROSSVER)
 	#$(MAKE) $(PATCH)/*.ips
 
 $(PATCH)/*.ips: $(PATCH_DIR)/*.slpatch $(CROSS_CONFIG) $(CROSS_MAPS)/*.map $(NAME_MAP) 
