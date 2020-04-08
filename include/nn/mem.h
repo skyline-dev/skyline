@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include "os.h"
+#include "os.hpp"
 #include "types.h"
 
 namespace nn

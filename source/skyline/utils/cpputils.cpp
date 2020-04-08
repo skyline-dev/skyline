@@ -1,4 +1,6 @@
 #include "skyline/utils/cpputils.hpp"
+
+#include "skyline/utils/utils.h"
 #include "nn/nn.h"
 
 namespace skyline {
@@ -13,19 +15,21 @@ namespace skyline {
     u64 utils::g_MainBssAddr;
     u64 utils::g_MainHeapAddr;
 
-    skyline::arc::Hashes* utils::g_Hashes;
+    nn::settings::system::FirmwareVersion utils::g_CachedFwVer;
 
-    void utils::populateMainAddrs(){
+    void utils::init(){
         // find .text
-        skyline::utils::g_MainTextAddr = memGetMapAddr((u64)nninitStartup); // nninitStartup can be reasonably assumed to be exported by main
+        utils::g_MainTextAddr = memGetMapAddr((u64)nninitStartup); // nninitStartup can be reasonably assumed to be exported by main
         // find .rodata
-        skyline::utils::g_MainRodataAddr = memNextMap(skyline::utils::g_MainTextAddr);
+        utils::g_MainRodataAddr = memNextMap(utils::g_MainTextAddr);
         // find .data
-        skyline::utils::g_MainDataAddr = memNextMap(skyline::utils::g_MainRodataAddr);
+        utils::g_MainDataAddr = memNextMap(utils::g_MainRodataAddr);
         // find .bss
-        skyline::utils::g_MainBssAddr = memNextMap(skyline::utils::g_MainDataAddr);
+        utils::g_MainBssAddr = memNextMap(utils::g_MainDataAddr);
         // find heap
         utils::g_MainHeapAddr = memNextMapOfType(utils::g_MainBssAddr, MemType_Heap);
+
+        nn::settings::system::GetFirmwareVersion(&g_CachedFwVer);
     }
 
     bool endsWith(std::string const& str1, std::string const& str2){
@@ -33,7 +37,7 @@ namespace skyline {
             && str1.find(str2, str1.size() - str2.size()) != str1.npos;
     }
 
-    Result utils::walkDirectory(std::string const& root, std::function<void(nn::fs::DirectoryEntry const&, std::shared_ptr<std::string>)> callback) {
+    Result utils::walkDirectory(std::string const& root, std::function<void(nn::fs::DirectoryEntry const&, std::shared_ptr<std::string>)> callback, bool recursive) {
         Result r;
 
         nn::fs::DirectoryHandle rootHandle;
@@ -50,10 +54,8 @@ namespace skyline {
         r = nn::fs::ReadDirectory(&entryCount, entryBuffer, rootHandle, entryCount);
         nn::fs::CloseDirectory(rootHandle);
 
-        if(R_FAILED(r)){
-            delete[] entryBuffer;
-            return r;
-        }
+        if(R_FAILED(r))
+            goto exit;
 
         for(int i = 0; i < entryCount; i++) {
             nn::fs::DirectoryEntry& entry = entryBuffer[i];
@@ -66,17 +68,16 @@ namespace skyline {
             fullPath += "/";
             fullPath += entryStr;
 
-            if(entry.type == nn::fs::DirectoryEntryType_Directory)
+            if(entry.type == nn::fs::DirectoryEntryType_Directory && recursive)
                 r = walkDirectory(fullPath, callback);
 
-            if(R_FAILED(r)){
-                delete[] entryBuffer;
-                return r;
-            }
+            if(R_FAILED(r))
+                goto exit;
 
             callback(entry, std::make_shared<std::string>(fullPath));
         }
         
+        exit:
         delete[] entryBuffer;
         return r;
     }
@@ -134,13 +135,14 @@ namespace skyline {
 
         nn::fs::DirectoryEntryType entryType;
         Result rc = nn::fs::GetEntryType(&entryType, str.c_str());
-        if(entryType == nn::fs::DirectoryEntryType_Directory)
-            return -1;
 
         if(rc == 0x202) { // Path does not exist 
             R_TRY(nn::fs::CreateFile(str.c_str(), offset + length));
-        } else
+        } else if(R_FAILED(rc))
             return rc;
+            
+        if(entryType == nn::fs::DirectoryEntryType_Directory)
+            return -1;
 
         nn::fs::FileHandle handle;
         R_TRY(nn::fs::OpenFile(&handle, str.c_str(), nn::fs::OpenMode_ReadWrite | nn::fs::OpenMode_Append));
@@ -153,7 +155,7 @@ namespace skyline {
             return r;
         }
 
-        if((u64)fileSize < offset + length){ // make sure we have enough space
+        if(fileSize < offset + (s64)length){ // make sure we have enough space
             r = nn::fs::SetFileSize(handle, offset + length);
 
             if(R_FAILED(r)){
@@ -166,5 +168,22 @@ namespace skyline {
 
         nn::fs::CloseFile(handle);
         return r;
+    }
+
+    Result utils::entryCount(u64* out, std::string const& path, nn::fs::DirectoryEntryType entryType) {
+        nn::fs::DirectoryEntryType pathType;
+        R_TRY(nn::fs::GetEntryType(&pathType, path.c_str()));
+
+        if(pathType == nn::fs::DirectoryEntryType_File) {
+            *out = 0;
+            return 0;
+        }
+
+        return walkDirectory(path, 
+        [out, entryType](nn::fs::DirectoryEntry const& entry, std::shared_ptr<std::string>) {
+            if(entry.type == entryType) 
+                (*out)++;
+        }, 
+        false); // not recursive
     }
 };

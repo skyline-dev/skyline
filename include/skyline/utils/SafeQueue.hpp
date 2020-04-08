@@ -4,14 +4,13 @@
 
 #include "mem.h"
 #include "nn/os.h"
-#include "skyline/logger/TcpLogger.hpp"
+#include "skyline/logger/Logger.hpp"
 
 #include <queue>
 #include <memory>
 #include <functional>
 
-namespace skyline {
-namespace utils {
+namespace skyline::utils {
 
     class Task {
         public:
@@ -76,5 +75,4 @@ namespace utils {
         void startThread(s32 priority, s32 core, u64 stackSize);
         void _threadEntrypoint();
     };
-};
 };

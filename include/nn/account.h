@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include "os.h"
+#include "os.hpp"
 #include "types.h"
 
 namespace nn
@@ -13,7 +13,9 @@ namespace nn
     namespace account
     {
         typedef char Nickname[0x21];
-        typedef u64 Uid[0x2];
+        struct Uid {
+            u64 _x0[2];
+        };
         typedef u64 NetworkServiceAccountId;
         
         class AsyncContext;

@@ -16,8 +16,8 @@
 #include <unordered_map>
 #include <algorithm>
 
-namespace skyline {
-namespace plugin {
+namespace skyline::plugin{
+    
     class PluginInfo {
         public:
         void*  Data;
@@ -30,5 +30,4 @@ namespace plugin {
         public:
         static void Init();
     };
-};
 };

@@ -71,6 +71,7 @@ ensuredirectory(ftp, '/atmosphere/contents', "01006A800016E000")
 ensuredirectory(ftp, f'/atmosphere/contents/01006A800016E000', 'exefs')
 
 binaryPath = f'{os.path.basename(os.getcwd())}{version}.nso'
+print(binaryPath)
 if os.path.isfile(binaryPath):
     sdPath = f'/atmosphere/contents/01006A800016E000/exefs/subsdk1'
     print(f'Sending {sdPath}')

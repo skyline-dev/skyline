@@ -85,6 +85,8 @@ bool envIsSyscallHinted(u8 svc);
 /// Returns the handle to the running homebrew process.
 Handle envGetOwnProcessHandle(void);
 
+// Set the current handle to the running process.
+void envSetOwnProcessHandle(Handle);
 
 /**
  * @brief Configures the next homebrew application to load.

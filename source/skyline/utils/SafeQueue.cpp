@@ -1,7 +1,6 @@
 #include "skyline/utils/SafeQueue.hpp"
 
-namespace skyline {
-namespace utils {
+namespace skyline::utils {
 
     Task::Task(){
         nn::os::InitializeEvent(&completionEvent, false, nn::os::EventClearMode_AutoClear);
@@ -25,18 +24,18 @@ namespace utils {
     }
 
     void SafeTaskQueue::startThread(s32 priority, s32 core, u64 stackSize) {
-        skyline::TcpLogger::Log("[SafeTaskQueue] Starting thread.");
+        skyline::logger::s_Instance->Log("[SafeTaskQueue] Starting thread.");
         void* stack = memalign(0x1000, stackSize);
         Result rc = nn::os::CreateThread(&thread, entrypoint, this, stack, stackSize, priority, core);
         if(R_FAILED(rc)){
-            skyline::TcpLogger::Log("[SafeTaskQueue] Failed to create thread (0x%x).", rc);
+            skyline::logger::s_Instance->LogFormat("[SafeTaskQueue] Failed to create thread (0x%x).", rc);
         }
 
         nn::os::StartThread(&thread);
     }
 
     void SafeTaskQueue::_threadEntrypoint(){
-        skyline::TcpLogger::Log("[SafeTaskQueue] Thread started.");
+        skyline::logger::s_Instance->Log("[SafeTaskQueue] Thread started.");
         while(true){
             std::unique_ptr<Task>* taskptr;
             if(pop(&taskptr, nn::TimeSpan::FromNanoSeconds(10000000))){
@@ -56,6 +55,4 @@ namespace utils {
             }
         }
     }
-
-};
 };

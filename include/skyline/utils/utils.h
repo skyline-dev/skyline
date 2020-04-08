@@ -2,7 +2,6 @@
 
 #include "types.h"
 
-#include "skyline/nx/kernel/svc.h"
 
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
@@ -10,6 +9,8 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+    #include "skyline/nx/kernel/svc.h"
 
     u32 previousPowerOfTwo(u32 x);
     Result memGetMap(MemoryInfo* info, u64 addr);
