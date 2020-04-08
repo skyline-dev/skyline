@@ -135,44 +135,13 @@ bool envIsSyscallHinted(u8 svc) {
 
     return true; // assume all svc calls are avaiable
 }
-static Handle g_procHandle;
-
-static void procHandleReceiveThread(void* arg)
-{
-    Handle session = (Handle)(uintptr_t)arg;
-
-    void* base = armGetTls();
-    hipcMakeRequestInline(base);
-
-    s32 idx = 0;
-    svcReplyAndReceive(&idx, &session, 1, INVALID_HANDLE, UINT64_MAX);
-
-    HipcParsedRequest r = hipcParseRequest(base);
-
-    g_procHandle = r.data.copy_handles[0];
-    svcCloseHandle(session);
-}
 
 Handle envGetOwnProcessHandle(void) {
-    Handle server_handle, client_handle;
-    svcCreateSession(&server_handle, &client_handle, 0, 0);
+    return g_processHandle;
+}
 
-    Thread t;
-    threadCreate(&t, &procHandleReceiveThread, (void*)(uintptr_t)server_handle, NULL, 0x1000, 0x20, 0);
-
-    threadStart(&t);
-
-    hipcMakeRequestInline(armGetTls(),
-        .num_copy_handles = 1,
-    ).copy_handles[0] = CUR_PROCESS_HANDLE;
-
-    svcSendSyncRequest(client_handle);
-    svcCloseHandle(client_handle);
-
-    threadWaitForExit(&t);
-    threadClose(&t);
-
-    return g_procHandle;
+void envSetOwnProcessHandle(Handle handle) {
+    g_processHandle = handle;
 }
 
 LoaderReturnFn envGetExitFuncPtr(void) {

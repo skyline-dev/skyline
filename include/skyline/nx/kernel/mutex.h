@@ -7,11 +7,13 @@
 #pragma once
 #include <sys/lock.h>
 #include "types.h"
+#include "nn/os.h"
+
 
 /// Mutex datatype, defined in newlib.
-typedef _LOCK_T Mutex;
+typedef nnosMutexType Mutex;
 /// Recursive mutex datatype, defined in newlib.
-typedef _LOCK_RECURSIVE_T RMutex;
+typedef nnosMutexType RMutex;
 
 /**
  * @brief Initializes a mutex.
@@ -20,7 +22,7 @@ typedef _LOCK_RECURSIVE_T RMutex;
  */
 static inline void mutexInit(Mutex* m)
 {
-    *m = 0;
+    nnosInitializeMutex(m, false, 0);
 }
 
 /**
@@ -49,9 +51,7 @@ void mutexUnlock(Mutex* m);
  */
 static inline void rmutexInit(RMutex* m)
 {
-    m->lock = 0;
-    m->thread_tag = 0;
-    m->counter = 0;
+    nnosInitializeMutex(m, true, 0);
 }
 
 /**

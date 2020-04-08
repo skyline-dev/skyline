@@ -31,7 +31,6 @@
     str x0, [sp, #0x0]
 .endm
 
-// 17 instructions
 .macro armRecoverRegisters
     ldr x0, [sp, #0x0]
     ldp x1, x2, [sp, #0x8]

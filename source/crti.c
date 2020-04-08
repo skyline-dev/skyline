@@ -1,5 +1,4 @@
 #include "types.h"
-#include "skyline/nx/runtime/env.h"
 
 // forward declare main
 void skylineMain();
@@ -26,6 +25,6 @@ void __custom_fini(void) {
 }
 
 // unused in the context of NSOs
-void skylineInit(void* ctx, Handle main_thread, LoaderReturnFn saved_lr){
+void skylineInit(void* ctx, Handle main_thread, u64 saved_lr){
     *((u64*)0) = 0x69;
 }

@@ -73,14 +73,10 @@ void virtmemSetup(void) {
             R_ERRORONFAIL(rc);
         }
     } else {
-        if (R_FAILED(_GetRegionFromInfo(&g_Region[REGION_STACK], InfoType_StackRegionAddress, InfoType_StackRegionSize))) {
-            R_ERRORONFAIL(-1);
-        }
+        R_ERRORONFAIL(_GetRegionFromInfo(&g_Region[REGION_STACK], InfoType_StackRegionAddress, InfoType_StackRegionSize));
     }
 
-    if (R_FAILED(_GetRegionFromInfo(&g_Region[REGION_HEAP], InfoType_HeapRegionAddress, InfoType_HeapRegionSize))) {
-        R_ERRORONFAIL(-1);
-    }
+    R_ERRORONFAIL(_GetRegionFromInfo(&g_Region[REGION_HEAP], InfoType_HeapRegionAddress, InfoType_HeapRegionSize));
 
     _GetRegionFromInfo(&g_Region[REGION_LEGACY_ALIAS], InfoType_AliasRegionAddress, InfoType_AliasRegionSize);
 }

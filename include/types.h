@@ -81,12 +81,19 @@ typedef void (*ThreadFunc)(void *);
 #define INVALID_HANDLE ((Handle) 0)
 
 #ifndef ALIGN_UP
-#define ALIGN_UP(x, a) (((x) + (a) - 1) & ~((a) - 1))
+#define ALIGN_UP(x, a) (((x) + ((a) - 1)) & ~((a) - 1))
 #endif
 
 #ifndef ALIGN_DOWN
-#define ALIGN_DOWN(x, a) (((x) - ((a) - 1)) & ~((a) - 1))
+#define ALIGN_DOWN(x, a) ((unsigned long)(x) & ~(((unsigned long)(a)) - 1))
 #endif 
 
 
 #define R_ERRORONFAIL(r) if(R_FAILED(r))*((Result*)0x69) = r;
+
+#define R_UNLESS(expr, res) \
+    ({ \
+        if (!(expr)) { \
+            return static_cast<Result>(res); \
+        } \
+    })

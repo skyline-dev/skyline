@@ -27,6 +27,10 @@ namespace nn
         struct FileHandle
         {
             void* handle;
+
+            inline bool operator==(const FileHandle& b) const {
+                return handle == b.handle;
+            }
         };
 
         struct DirectoryHandle
