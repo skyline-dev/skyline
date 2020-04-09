@@ -42,7 +42,7 @@ namespace nn
     {
         
         Result Initialize();
-        bool IsInitialzed();
+        bool IsInitialized();
 
         struct CalendarTime
         {
