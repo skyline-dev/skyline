@@ -23,7 +23,7 @@ namespace nn
             bool mPermitJoyconDual;
             bool mSingleMode;
             bool mUseColors;
-            sead::Color4u8 mColors[4];
+            nn::util::Color4u8 mColors[4];
             u8 mUsingControllerNames;
             char mControllerNames[4][0x81];
         };

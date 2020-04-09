@@ -15,6 +15,11 @@ namespace nn
         {
             u8 elements[0x4];
         };
+        
+        struct Color4u8
+        {
+            u8 r, g, b, a;
+        };
 
         enum CharacterEncodingResult 
         {
