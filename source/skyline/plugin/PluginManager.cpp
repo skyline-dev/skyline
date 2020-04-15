@@ -76,7 +76,7 @@ namespace plugin {
             return;
         }
 
-        skyline::logger::s_Instance->Log("[PluginManager] Loading plugins...");
+        skyline::logger::s_Instance->Log("[PluginManager] Loading plugins...\n");
         for(auto &kv : plugins){
             PluginInfo& plugin = kv.second;
 

@@ -4,9 +4,9 @@
 
 #define PORT    6969
 
-extern "C" void skyline_tcp_send_raw(const char* data, size_t size) __attribute__((visibility("default")));
+extern "C" void skyline_tcp_send_raw(char* data, size_t size) __attribute__((visibility("default")));
 
-void skyline_tcp_send_raw(const char* data, u64 size) {
+void skyline_tcp_send_raw(char* data, u64 size) {
     skyline::logger::s_Instance->Log(data, size);
 }
 

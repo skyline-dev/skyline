@@ -388,11 +388,11 @@ static bool __fix_pcreladdr(instruction inprwp, instruction inprxp, instruction 
                 if (ref_idx > current_idx) {
                     // the bottom 12 bits of absolute_addr are masked out,
                     // so ref_idx must be less than or equal to current_idx!
-                    skyline::logger::s_Instance->Log("[And64InlineHook] ref_idx must be less than or equal to current_idx!");
+                    skyline::logger::s_Instance->Log("[And64InlineHook] ref_idx must be less than or equal to current_idx!\n");
                 } //if
 
                 // *absolute_addr may be changed due to relocation fixing
-                skyline::logger::s_Instance->Log("What is the correct way to fix this?");
+                skyline::logger::s_Instance->Log("What is the correct way to fix this?\n");
                 *(*outprw)++ = ins; // 0x90000000u;
                 (*outprx)++;
             } else {
@@ -434,7 +434,7 @@ static void __fix_instructions(uint32_t *__restrict inprw, uint32_t *__restrict 
                   "please use A64_MAX_INSTRUCTIONS!");
 #ifndef NDEBUG
     if (count > A64_MAX_INSTRUCTIONS) {
-         skyline::logger::s_Instance->Log("[And64InlineHook] too many fixing instructions!");
+         skyline::logger::s_Instance->Log("[And64InlineHook] too many fixing instructions!\n");
     } //if
 #endif // NDEBUG
 
@@ -602,7 +602,7 @@ typedef uint32_t insns_t[A64_MAX_BACKUPS][A64_MAX_INSTRUCTIONS * 10u];
 
     //-------------------------------------------------------------------------
 
-    void A64HookFunction(void *const symbol, void *const replace, void **result)
+    extern "C" void A64HookFunction(void *const symbol, void *const replace, void **result)
     {
         nn::os::LockMutex(&hookMutex);
 
