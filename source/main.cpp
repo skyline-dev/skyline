@@ -97,7 +97,7 @@ void runtimePatchMain(void*){
 
     skyline::logger::s_Instance->LogFormat("[runtimePatchMain] Mounted SD (0x%x)", rc);
 
-    skyline::logger::s_Instance->Log("[runtimePatchMain] Begining initialization.");
+    skyline::logger::s_Instance->Log("[runtimePatchMain] Begining initialization.\n");
 
     // swap out to Tcp
     delete skyline::logger::s_Instance;

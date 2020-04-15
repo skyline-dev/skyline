@@ -80,9 +80,10 @@ namespace skyline::logger {
         if (size == UINT32_MAX)
             size = strlen(data);
 
-        char* ptr = new char[size+1];
+        char* ptr = new char[size+2];
+        memset(ptr, 0, size+2);
         memcpy(ptr, data, size);
-        ptr[size] = 0;
+        //ptr[size] = '\n';
 
         AddToQueue(ptr);
         return;
