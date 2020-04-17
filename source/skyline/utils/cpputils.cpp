@@ -186,4 +186,23 @@ namespace skyline {
         }, 
         false); // not recursive
     }
+
+    void* utils::getRegionAddress(skyline::utils::region region)
+    {
+        switch(region)
+        {
+            case region::Text:
+                return g_MainTextAddr;
+            case region::Rodata:
+                return g_MainRodataAddr;
+            case region::Data:
+                return g_MainDataAddr;
+            case region::Bss:
+                return g_MainBssAddr;
+            case region::Heap:
+                return g_MainHeapAddr;
+            default:
+                return NULL;
+        }
+    }
 };

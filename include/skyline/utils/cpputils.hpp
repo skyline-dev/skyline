@@ -12,6 +12,16 @@
 #include <memory>
 
 namespace skyline::utils {
+
+    enum region : u8
+    {
+        Text,
+        Rodata,
+        Data,
+        Bss,
+        Heap
+    };
+
     extern std::string g_RomMountStr;
 
     extern nn::os::EventType g_RomMountedEvent;
@@ -31,6 +41,7 @@ namespace skyline::utils {
     Result readFile(std::string const&, s64, void*, size_t);
     Result writeFile(std::string const&, s64, void*, size_t);
     Result entryCount(u64*, std::string const&, nn::fs::DirectoryEntryType);
+    extern "C" void* getRegionAddress(skyline::utils::region);
     
     struct Sha256Hash {
         u8 hash[0x20];
