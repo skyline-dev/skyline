@@ -187,7 +187,7 @@ namespace skyline {
         false); // not recursive
     }
 
-    u64 utils::getRegionAddress(skyline::utils::region region)
+    void* utils::getRegionAddress(skyline::utils::region region)
     {
         switch(region)
         {
@@ -202,7 +202,7 @@ namespace skyline {
             case region::Heap:
                 return g_MainHeapAddr;
             default:
-                return -1;
+                return null;
         }
     }
 };

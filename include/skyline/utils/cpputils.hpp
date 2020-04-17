@@ -41,7 +41,7 @@ namespace skyline::utils {
     Result readFile(std::string const&, s64, void*, size_t);
     Result writeFile(std::string const&, s64, void*, size_t);
     Result entryCount(u64*, std::string const&, nn::fs::DirectoryEntryType);
-    extern "C" u64    getRegionAddress(skyline::utils::region);
+    extern "C" void* getRegionAddress(skyline::utils::region);
     
     struct Sha256Hash {
         u8 hash[0x20];
