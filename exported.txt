@@ -5,6 +5,7 @@
         skyline_tcp_send_raw;
         getRegionAddress;
         A64HookFunction;
+        sky_memcpy;
         
     local: *;
 };  
