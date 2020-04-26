@@ -87,6 +87,63 @@ u32 handleCrcHash(char const* str) {
     return hash;
 }
 
+struct L2CAgent {
+    uint64_t vtable;
+    uint64_t lua_state_agent;
+    uint64_t unk10;
+    uint64_t unk18;
+    uint64_t unk20;
+    uint64_t unk28;
+    uint64_t unk30;
+    uint64_t unk38;
+    uint64_t lua_state_agentbase;
+};
+
+#define LOAD64 *(u64*)
+
+extern void frame(u64, float) asm("_ZN3app10sv_animcmd5frameEP9lua_Statef");
+extern bool is_excute(u64) asm("_ZN3app10sv_animcmd9is_excuteEP9lua_State");
+u64 squirtle_ftilt(L2CAgent* l2c_agent, void* variadic) {
+    frame(l2c_agent->lua_state_agent, 5.0);
+    if (is_excute(l2c_agent->lua_state_agent)) {
+        skyline::logger::s_Instance->Log("[Squirtle Utilt] Frame 5\n");
+    }
+
+    frame(l2c_agent->lua_state_agent, 10.0);
+    if (is_excute(l2c_agent->lua_state_agent)) {
+        skyline::logger::s_Instance->Log("[Squirtle Utilt] Frame 10\n");
+    }
+}
+
+extern u64 sv_set_function_hash(L2CAgent*, u64 (*func)(L2CAgent*, void*), u64 hash) asm("_ZN3lib8L2CAgent20sv_set_function_hashEPvN3phx6Hash40E");
+void replace_scripts(L2CAgent* l2c_agent, u8 category, int kind) {
+    // fighter
+    if (category == 0) {//BATTLE_OBJECT_CATEGORY_FIGHTER) {
+        // squirtle
+        if (kind == 36) {//FIGHTER_KIND_PZENIGAME) {
+            sv_set_function_hash(
+                l2c_agent,
+                &squirtle_ftilt,
+                0xEF3BCA119); // hash40("game_attackhi3")
+        }
+    }
+}
+
+extern clear_lua_stack(L2CAgent* l2c_agent) asm("_ZN3lib8L2CAgent15clear_lua_stackEv");
+u64 (*clear_lua_stack_impl)(L2CAgent*);
+u64 clear_lua_stack_replace(L2CAgent* l2c_agent) {
+    u64 lua_state = l2c_agent->lua_state_agent;
+    if ((lua_state - 8) && 
+        LOAD64(lua_state - 8) &&
+        (LOAD64(LOAD64(lua_state - 8) + 416LL))) {
+        u8 battle_object_category = *(u8*)(LOAD64(lua_state - 8) + 404LL);
+        int battle_object_kind = *(int*)(LOAD64(lua_state - 8) + 408LL);
+        replace_scripts(l2c_agent, battle_object_category, battle_object_kind);
+    }
+
+    return clear_lua_stack_impl(l2c_agent);
+}
+
 void runtimePatchMain(void*){
     // init sd
     Result rc = nn::fs::MountSdCardForDebug("sd");
@@ -117,6 +174,12 @@ void runtimePatchMain(void*){
         reinterpret_cast<void*>(nn::fs::MountRom),
         reinterpret_cast<void*>(handleNnFsMountRom),
         (void**) &nnFsMountRomImpl
+    );
+
+    A64HookFunction(
+        reinterpret_cast<void*>(clear_lua_stack),
+        reinterpret_cast<void*>(clear_lua_stack_replace),
+        (void**) &clear_lua_stack_impl
     );
 
     skyline::logger::s_Instance->StartThread(); // start logging thread
