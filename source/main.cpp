@@ -88,14 +88,8 @@ u32 handleCrcHash(char const* str) {
 }
 
 void runtimePatchMain(void*){
-    // init sd
-    Result rc = nn::fs::MountSdCardForDebug("sd");
-    // create temp directory
-    nn::fs::CreateDirectory("sd:/tmp");
     // initalize logger to SD 
     skyline::logger::s_Instance = new skyline::logger::TcpLogger();
-
-    skyline::logger::s_Instance->LogFormat("[runtimePatchMain] Mounted SD (0x%x)", rc);
 
     skyline::logger::s_Instance->Log("[runtimePatchMain] Begining initialization.\n");
 
@@ -181,6 +175,10 @@ void runtimePatchMain(void*){
             if(!nn::os::TimedWaitEvent(&skyline::utils::g_RomMountedEvent, nn::TimeSpan::FromSeconds(10))) {
                 //skyline::TcpLogger::SendRawFormat("[ROM Waiter] Missed ROM mount event!\n");
             }
+
+            // init sd
+            Result rc = nn::fs::MountSdCardForDebug("sd");
+            skyline::logger::s_Instance->LogFormat("[runtimePatchMain] Mounted SD (0x%x)", rc);
 
             Result (*nnRoInitializeImpl)();
             A64HookFunction(

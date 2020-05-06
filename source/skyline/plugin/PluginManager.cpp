@@ -1,4 +1,5 @@
 #include "skyline/plugin/PluginManager.hpp"
+#include "skyline/nx/runtime/env.h"
 
 namespace skyline {
 namespace plugin {
@@ -43,8 +44,11 @@ namespace plugin {
         nn::ro::NrrHeader nrr;
         memset(&nrr, 0, sizeof(nn::ro::NrrHeader));
 
+        u64 program_id;
+        svcGetInfo(&program_id, 18, INVALID_HANDLE, 0);
+
         nrr.magic = 0x3052524E; // NRR0
-        nrr.program_id = {0x01006A800016E000ul};
+        nrr.program_id = {program_id};
         nrr.type = 0; // ForSelf
         nrr.hashes_offset = sizeof(nn::ro::NrrHeader);
         nrr.num_hashes = plugins.size();
@@ -87,30 +91,25 @@ namespace plugin {
 
             rc = nn::ro::LoadModule(&plugin.Module, plugin.Data, buffer, bufferSize, nn::ro::BindFlag_Now);
             if(!rc) {
-                skyline::logger::s_Instance->LogFormat("[PluginManager] Loaded %s", kv.first.c_str(), &plugin.Module.Name);
+                skyline::logger::s_Instance->LogFormat("[PluginManager] Loaded %s as %s", kv.first.c_str(), &plugin.Module.Name);
+
+                void (*pluginEntrypoint)() = NULL;
+                rc = 0;
+                rc = nn::ro::LookupModuleSymbol(
+                    reinterpret_cast<uintptr_t*>(&pluginEntrypoint), 
+                    &plugin.Module, 
+                    "main");
+                if(pluginEntrypoint != NULL && !rc) {
+                    pluginEntrypoint();
+                    skyline::logger::s_Instance->LogFormat("[PluginManager] Finished running `main` for %s, rc: 0x%x", kv.first.c_str(), rc);
+                } else {
+                    skyline::logger::s_Instance->LogFormat("[PluginManager] Failed to lookup symbol for %s, return code: 0x%x", kv.first.c_str(), rc);
+                }
             } else {
                skyline::logger::s_Instance->LogFormat("[PluginManager] Failed to load %s, return code: 0x%x", kv.first.c_str(), rc);
             }
         }
-
-        for(auto &kv : plugins){
-            PluginInfo& plugin = kv.second;
-
-            skyline::logger::s_Instance->LogFormat("[PluginManager] Running `main` for %s", kv.first.c_str(), &plugin.Module.Name);
-
-            void (*pluginEntrypoint)() = NULL;
-            rc = 0;
-            rc = nn::ro::LookupModuleSymbol(
-                reinterpret_cast<uintptr_t*>(&pluginEntrypoint),
-                &plugin.Module,
-                "main");
-            if(pluginEntrypoint != NULL && !rc) {
-                pluginEntrypoint();
-                skyline::logger::s_Instance->LogFormat("[PluginManager] Finished running `main` for %s, rc: 0x%x", kv.first.c_str(), rc);
-            } else {
-                skyline::logger::s_Instance->LogFormat("[PluginManager] Failed to lookup symbol for %s, return code: 0x%x", kv.first.c_str(), rc);
-            }
-        }
     }
+
 };
 };
