@@ -72,6 +72,22 @@ namespace plugin {
 
         memcpy(nrrBin, &nrr, sizeof(nn::ro::NrrHeader));
         
+        skyline::logger::s_Instance->LogFormat("[PluginManager] Calculating hashes...");
+        std::vector<utils::Sha256Hash> sortedHashes;
+        for(auto& kv : plugins){
+            PluginInfo& plugin = kv.second;
+            nn::ro::NroHeader* nro = (nn::ro::NroHeader*) plugin.Data;
+            nn::crypto::GenerateSha256Hash(&plugin.Hash, sizeof(utils::Sha256Hash), nro, nro->size);
+            sortedHashes.push_back(plugin.Hash);
+        }
+        std::sort(sortedHashes.begin(), sortedHashes.end());
+        
+        utils::Sha256Hash* hashes = reinterpret_cast<utils::Sha256Hash*>((u64)(nrrBin) + nrr.hashes_offset);
+        for(auto& hash : sortedHashes)
+            *hashes++ = hash;
+
+        memcpy(nrrBin, &nrr, sizeof(nn::ro::NrrHeader));
+        
         nn::ro::RegistrationInfo reg;
         rc = nn::ro::RegisterModuleInfo(&reg, nrrBin);
         if(R_FAILED(rc)){
@@ -91,22 +107,28 @@ namespace plugin {
 
             rc = nn::ro::LoadModule(&plugin.Module, plugin.Data, buffer, bufferSize, nn::ro::BindFlag_Now);
             if(!rc) {
-                skyline::logger::s_Instance->LogFormat("[PluginManager] Loaded %s as %s", kv.first.c_str(), &plugin.Module.Name);
-
-                void (*pluginEntrypoint)() = NULL;
-                rc = 0;
-                rc = nn::ro::LookupModuleSymbol(
-                    reinterpret_cast<uintptr_t*>(&pluginEntrypoint), 
-                    &plugin.Module, 
-                    "main");
-                if(pluginEntrypoint != NULL && !rc) {
-                    pluginEntrypoint();
-                    skyline::logger::s_Instance->LogFormat("[PluginManager] Finished running `main` for %s, rc: 0x%x", kv.first.c_str(), rc);
-                } else {
-                    skyline::logger::s_Instance->LogFormat("[PluginManager] Failed to lookup symbol for %s, return code: 0x%x", kv.first.c_str(), rc);
-                }
+                skyline::logger::s_Instance->LogFormat("[PluginManager] Loaded %s", kv.first.c_str(), &plugin.Module.Name);
             } else {
                skyline::logger::s_Instance->LogFormat("[PluginManager] Failed to load %s, return code: 0x%x", kv.first.c_str(), rc);
+            }
+        }
+
+        for(auto &kv : plugins){
+            PluginInfo& plugin = kv.second;
+
+            skyline::logger::s_Instance->LogFormat("[PluginManager] Running `main` for %s", kv.first.c_str(), &plugin.Module.Name);
+
+            void (*pluginEntrypoint)() = NULL;
+            rc = 0;
+            rc = nn::ro::LookupModuleSymbol(
+                reinterpret_cast<uintptr_t*>(&pluginEntrypoint),
+                &plugin.Module,
+                "main");
+            if(pluginEntrypoint != NULL && !rc) {
+                pluginEntrypoint();
+                skyline::logger::s_Instance->LogFormat("[PluginManager] Finished running `main` for %s, rc: 0x%x", kv.first.c_str(), rc);
+            } else {
+                skyline::logger::s_Instance->LogFormat("[PluginManager] Failed to lookup symbol for %s, return code: 0x%x", kv.first.c_str(), rc);
             }
         }
     }

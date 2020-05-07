@@ -28,8 +28,8 @@ namespace skyline {
         utils::g_MainBssAddr = memNextMap(utils::g_MainDataAddr);
         // find heap
         utils::g_MainHeapAddr = memNextMapOfType(utils::g_MainBssAddr, MemType_Heap);
-
-        nn::settings::system::GetFirmwareVersion(&g_CachedFwVer);
+        // Causes a crash on some games, might want to do this differently. (Calling SVCs implemented later?)
+        //nn::settings::system::GetFirmwareVersion(&g_CachedFwVer);
     }
 
     bool endsWith(std::string const& str1, std::string const& str2){
