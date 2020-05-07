@@ -72,22 +72,6 @@ namespace plugin {
 
         memcpy(nrrBin, &nrr, sizeof(nn::ro::NrrHeader));
         
-        skyline::logger::s_Instance->LogFormat("[PluginManager] Calculating hashes...");
-        std::vector<utils::Sha256Hash> sortedHashes;
-        for(auto& kv : plugins){
-            PluginInfo& plugin = kv.second;
-            nn::ro::NroHeader* nro = (nn::ro::NroHeader*) plugin.Data;
-            nn::crypto::GenerateSha256Hash(&plugin.Hash, sizeof(utils::Sha256Hash), nro, nro->size);
-            sortedHashes.push_back(plugin.Hash);
-        }
-        std::sort(sortedHashes.begin(), sortedHashes.end());
-        
-        utils::Sha256Hash* hashes = reinterpret_cast<utils::Sha256Hash*>((u64)(nrrBin) + nrr.hashes_offset);
-        for(auto& hash : sortedHashes)
-            *hashes++ = hash;
-
-        memcpy(nrrBin, &nrr, sizeof(nn::ro::NrrHeader));
-        
         nn::ro::RegistrationInfo reg;
         rc = nn::ro::RegisterModuleInfo(&reg, nrrBin);
         if(R_FAILED(rc)){
