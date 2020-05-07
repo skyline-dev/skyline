@@ -1,5 +1,4 @@
 #include "skyline/plugin/PluginManager.hpp"
-#include "skyline/nx/runtime/env.h"
 
 namespace skyline {
 namespace plugin {
@@ -116,6 +115,5 @@ namespace plugin {
             }
         }
     }
-
 };
 };
