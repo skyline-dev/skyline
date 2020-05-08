@@ -181,15 +181,10 @@ namespace skyline::utils {
 
     Result Ipc::getOwnProcessHandle(Handle* handleOut){
         Service srv;
-        nnServiceCreate(&srv, "pm:info");
-
         u64 pid;
-        u64 program_id = 0x01006a800016e000; // TODO
-        R_ERRORONFAIL(nnServiceDispatchInOut(&srv, 65000, program_id, pid));
 
-        nnServiceClose(&srv);
-
-        skyline::utils::writeFile("sd:/tmp/pid.bin", 0, &pid, sizeof(pid));
+        svcGetProcessId(&pid, 0xFFFF8001);
+        //skyline::utils::writeFile("sd:/tmp/pid.bin", 0, &pid, sizeof(pid));
 
         nnServiceCreate(&srv, "pm:dmnt");
 

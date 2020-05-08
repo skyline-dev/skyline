@@ -43,8 +43,11 @@ namespace plugin {
         nn::ro::NrrHeader nrr;
         memset(&nrr, 0, sizeof(nn::ro::NrrHeader));
 
+        u64 program_id;
+        svcGetInfo(&program_id, 18, INVALID_HANDLE, 0);
+
         nrr.magic = 0x3052524E; // NRR0
-        nrr.program_id = {0x01006A800016E000ul};
+        nrr.program_id = {program_id};
         nrr.type = 0; // ForSelf
         nrr.hashes_offset = sizeof(nn::ro::NrrHeader);
         nrr.num_hashes = plugins.size();
