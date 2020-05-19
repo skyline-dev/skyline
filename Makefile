@@ -1,7 +1,7 @@
 # TODO (Khangaroo): Make this process a lot less hacky (no, export did not work)
 # See MakefileNSO
 
-.PHONY: all clean skyline send release
+.PHONY: all clean skyline send
 
 CROSSVER ?= 600
 
