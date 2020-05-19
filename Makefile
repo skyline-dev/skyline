@@ -1,7 +1,7 @@
 # TODO (Khangaroo): Make this process a lot less hacky (no, export did not work)
 # See MakefileNSO
 
-.PHONY: all clean skyline send
+.PHONY: all clean skyline send release
 
 CROSSVER ?= 600
 
@@ -35,7 +35,7 @@ MAKE_NSO		:= MakefileNSO
 all: skyline
 
 skyline:
-	$(MAKE) all -f $(MAKE_NSO) CROSSVER=$(CROSSVER) BUILD=$(BUILD_DIR) TARGET=$(NAME)$(CROSSVER)
+	$(MAKE) all -f $(MAKE_NSO) CROSSVER=$(CROSSVER) BUILD=$(BUILD_DIR) TARGET=$(NAME)$(CROSSVER) NODEBUG=$(NODEBUG)
 	#$(MAKE) $(PATCH)/*.ips
 
 $(PATCH)/*.ips: $(PATCH_DIR)/*.slpatch $(CROSS_CONFIG) $(CROSS_MAPS)/*.map $(NAME_MAP) 
