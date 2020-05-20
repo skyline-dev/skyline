@@ -10,8 +10,12 @@ namespace plugin {
         std::unordered_map<std::string, PluginInfo> plugins;
         skyline::utils::walkDirectory(utils::g_RomMountStr + "skyline/plugins", 
         [&plugins](nn::fs::DirectoryEntry const& entry, std::shared_ptr<std::string> path) {
-            if(entry.type == nn::fs::DirectoryEntryType_File)
-                plugins[*path] = PluginInfo();
+            if(entry.type == nn::fs::DirectoryEntryType_File) {
+                // exclude Mac hidden files
+                if (path->find("._") == std::string::npos) {
+                    plugins[*path] = PluginInfo();
+                }         
+            }
         });
         
         skyline::logger::s_Instance->LogFormat("[PluginManager] Opening plugins...");
@@ -98,6 +102,10 @@ namespace plugin {
 
         for(auto &kv : plugins){
             PluginInfo& plugin = kv.second;
+
+            if (&plugin.Module == NULL) {
+                continue;
+            }
 
             skyline::logger::s_Instance->LogFormat("[PluginManager] Running `main` for %s", kv.first.c_str(), &plugin.Module.Name);
 
