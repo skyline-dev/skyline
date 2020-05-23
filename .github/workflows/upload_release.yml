@@ -21,7 +21,7 @@ jobs:
     - name: Make Skyline
       run: DEVKITPRO=/opt/devkitpro make
     - name: Prepare ZIP
-      run: cd exefs && cp Skyline600.nso exefs/subsdk1 && cp cross.npdm exefs/main.npdm && zip Skyline.zip exefs -r
+      run: mkdir exefs && cp Skyline600.nso exefs/subsdk1 && cp cross.npdm exefs/main.npdm && zip Skyline.zip exefs -r
     - name: Upload Release
       uses: majkrzak/create-release@latest
       with:
