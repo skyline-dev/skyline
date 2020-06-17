@@ -22,6 +22,7 @@ extern "C" {
 namespace skyline::inlinehook {
 
     // mostly Atmosphere's libstratosphere
+    // TODO: this assumes sys ver v2.0.0+ish, could this support anything earlier?
     struct AddressSpaceInfo {
         uintptr_t heap_base;
         size_t heap_size;
@@ -50,50 +51,15 @@ namespace skyline::inlinehook {
         R_TRY(svcGetInfo(&out->heap_size,  InfoType_HeapRegionSize, process_h, 0));
         R_TRY(svcGetInfo(&out->alias_base, InfoType_AliasRegionAddress, process_h, 0));
         R_TRY(svcGetInfo(&out->alias_size, InfoType_AliasRegionSize, process_h, 0));
-        //if (utils::g_CachedFwVer.getVersion() >= 1) {
-            R_TRY(svcGetInfo(&out->aslr_base, InfoType_AslrRegionAddress, process_h, 0));
-            R_TRY(svcGetInfo(&out->aslr_size, InfoType_AslrRegionSize, process_h, 0));
-        /*} else {
-            /* Auto-detect 32-bit vs 64-bit. */ /*
-            if (out->heap_base < AslrBase64BitDeprecated || out->alias_base < AslrBase64BitDeprecated) {
-                out->aslr_base = AslrBase32Bit;
-                out->aslr_size = AslrSize32Bit;
-            } else {
-                out->aslr_base = AslrBase64BitDeprecated;
-                out->aslr_size = AslrSize64BitDeprecated;
-            }
-        }*/
+
+        R_TRY(svcGetInfo(&out->aslr_base, InfoType_AslrRegionAddress, process_h, 0));
+        R_TRY(svcGetInfo(&out->aslr_size, InfoType_AslrRegionSize, process_h, 0));
+        
 
         out->heap_end = out->heap_base + out->heap_size;
         out->alias_end = out->alias_base + out->alias_size;
         out->aslr_end = out->aslr_base + out->aslr_size;
         return 0;
-    }
-
-    static Result locateMappableSpaceDeprecated(uintptr_t *out_address, size_t size) {
-        MemoryInfo mem_info = {};
-        u32 page_info = 0;
-        uintptr_t cur_base = 0;
-
-        AddressSpaceInfo address_space;
-        R_TRY(getProcessAddressSpaceInfo(&address_space, envGetOwnProcessHandle()));
-        cur_base = address_space.aslr_base;
-
-        do {
-            R_TRY(svcQueryMemory(&mem_info, &page_info, cur_base));
-
-            if (mem_info.type == MemType_Unmapped && mem_info.addr - cur_base + mem_info.size >= size) {
-                *out_address = cur_base;
-                return 0;
-            }
-
-            const uintptr_t mem_end = mem_info.addr + mem_info.size;
-            R_UNLESS(mem_info.type != MemType_Reserved,                                  0x104);
-            R_UNLESS(cur_base <= mem_end,                                                0x104);
-            R_UNLESS(mem_end <= static_cast<uintptr_t>(UINT32_MAX),                      0x104);
-
-            cur_base = mem_end;
-        } while (true);
     }
 
     static Result locateMappableSpaceModern(uintptr_t *out_address, size_t size) {
@@ -140,11 +106,7 @@ namespace skyline::inlinehook {
     }
 
     static Result locateMappableSpace(uintptr_t *out_address, size_t size) {
-        //if (utils::g_CachedFwVer.getVersion() >= 1) {
-            return locateMappableSpaceModern(out_address, size);
-        //} else {
-        //    return locateMappableSpaceDeprecated(out_address, size);
-        //}
+        return locateMappableSpaceModern(out_address, size);
     }
 
     ControlledPages::ControlledPages(void* rx, size_t size) {

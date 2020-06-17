@@ -192,15 +192,15 @@ namespace skyline {
         switch(region)
         {
             case region::Text:
-                return g_MainTextAddr;
+                return (void*) g_MainTextAddr;
             case region::Rodata:
-                return g_MainRodataAddr;
+                return (void*) g_MainRodataAddr;
             case region::Data:
-                return g_MainDataAddr;
+                return (void*) g_MainDataAddr;
             case region::Bss:
-                return g_MainBssAddr;
+                return (void*) g_MainBssAddr;
             case region::Heap:
-                return g_MainHeapAddr;
+                return (void*) g_MainHeapAddr;
             default:
                 return NULL;
         }

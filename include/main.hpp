@@ -36,4 +36,4 @@ extern "C" {
 
 extern nn::os::EventType romMountedEvent;
 
-extern "C" void skylineMain();
+extern "C" void skyline_init();

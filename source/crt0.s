@@ -46,7 +46,7 @@ bss_loop:
     mov  x0, x25
     mov  x1, x26
     mov  x2, x27
-    b   skylineInit
+    .word deadbeef
 
 .section ".rodata.mod0"
 .global __nx_mod0

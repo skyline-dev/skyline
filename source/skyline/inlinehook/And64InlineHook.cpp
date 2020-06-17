@@ -494,7 +494,6 @@ static void __fix_instructions(uint32_t *__restrict inprw, uint32_t *__restrict 
 #define __countof(x)               static_cast<intptr_t>(sizeof(x) / sizeof((x)[0])) // must be signed
 #define __atomic_increase(p)       __sync_add_and_fetch(p, 1)
 #define __sync_cmpswap(p, v, n)    __sync_bool_compare_and_swap(p, v, n)
-#define __predict_true(exp)        __builtin_expect((exp) != 0, 1)
 typedef uint32_t insns_t[A64_MAX_BACKUPS][A64_MAX_INSTRUCTIONS * 10u];
 
     //-------------------------------------------------------------------------
