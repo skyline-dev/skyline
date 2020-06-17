@@ -73,7 +73,7 @@ ensuredirectory(ftp, f'/atmosphere/contents/01006A800016E000', 'exefs')
 binaryPath = f'{os.path.basename(os.getcwd())}{version}.nso'
 print(binaryPath)
 if os.path.isfile(binaryPath):
-    sdPath = f'/atmosphere/contents/01006A800016E000/exefs/subsdk1'
+    sdPath = f'/atmosphere/contents/01006A800016E000/exefs/subsdk9'
     print(f'Sending {sdPath}')
     ftp.storbinary(f'STOR {sdPath}', open(binaryPath, 'rb'))
 
