@@ -1,7 +1,7 @@
 #include "main.hpp"
 
 #include "skyline/utils/ipc.hpp"
-#include "skyline/logger/KernelLogger.hpp"
+#include "skyline/logger/TcpLogger.hpp"
 
 // For handling exceptions
 char ALIGNA(0x1000) exception_handler_stack[0x4000];
@@ -42,7 +42,7 @@ void skyline_main(){
     A64HookInit();
 
     // initalize logger for SD 
-    skyline::logger::s_Instance = new skyline::logger::KernelLogger();
+    skyline::logger::s_Instance = new skyline::logger::TcpLogger();
     skyline::logger::s_Instance->Log("[skyline_main] Begining initialization.\n");
     skyline::logger::s_Instance->StartThread(); 
 
