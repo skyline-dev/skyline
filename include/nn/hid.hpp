@@ -80,6 +80,14 @@ namespace nn
             CONTROLLER_HANDHELD = 0x20,
         } NpadId;
 
+        enum NpadStyle {
+            NpadStyleFullKey = BIT(0),
+            NpadStyleHandheld = BIT(1),
+            NpadStyleJoyDual = BIT(2),
+            NpadStyleJoyLeft = BIT(3),
+            NpadStyleJoyRight = BIT(4),
+        };
+
         struct NpadHandheldState {
             s64 updateCount;
             u64 Buttons;
@@ -92,6 +100,9 @@ namespace nn
         // Seems to be the same?
         struct NpadFullKeyState : NpadHandheldState {};
         struct NpadStyleTag;
+        struct NpadStyleSet {
+            u32 flags;
+        };
 
         struct ControllerSupportArg {
             u8 mMinPlayerCount;
@@ -111,6 +122,82 @@ namespace nn
             int mSelectedId;
         };
 
+        struct GesturePoint
+        {
+            s32 x;
+            s32 y;
+        };
+
+        enum GestureDirection
+        {
+            GESTUREDIRECTION_NONE,
+            GESTUREDIRECTION_LEFT,
+            GESTUREDIRECTION_UP,
+            GESTUREDIRECTION_RIGHT,
+            GESTUREDIRECTION_DOWN,
+        };
+
+        enum GestureType
+        {
+            GESTURETYPE_IDLE,
+            GESTURETYPE_COMPLETE,
+            GESTURETYPE_CANCEL,
+            GESTURETYPE_TOUCH,
+            GESTURETYPE_PRESS,
+            GESTURETYPE_TAP,
+            GESTURETYPE_PAN,
+            GESTURETYPE_SWIPE,
+            GESTURETYPE_PINCH,
+            GESTURETYPE_ROTATE,
+        };
+
+        enum GyroscopeZeroDriftMode
+        {
+            GyroscopeZeroDriftMode_Loose,
+            GyroscopeZeroDriftMode_Standard,
+            GyroscopeZeroDriftMode_Tight,
+        };
+
+        struct SixAxisSensorHandle
+        {
+            u32 handle;
+        };
+
+        struct GestureState {
+            s64 updateNum;
+            s64 detectionNum;
+            s32 type;
+            s32 direction;
+            s32 x;
+            s32 y;
+            s32 deltaX;
+            s32 deltaY;
+            ::nn::util::Float2 velocity;
+            u32 attributes;
+            float scale;
+            float rotationAngle;
+            s32 pointCount;
+            GesturePoint points[4];
+        };
+
+        struct DirectionState
+        {
+            ::nn::util::Float3  x;
+            ::nn::util::Float3  y;
+            ::nn::util::Float3  z;
+        };
+
+        struct SixAxisSensorState
+        {
+            ::nn::TimeSpan deltaUpdateTime;
+            s64 updateNum;
+            ::nn::util::Float3 acceleration;
+            ::nn::util::Float3 angularVelocity;
+            ::nn::util::Float3 angle;
+            DirectionState direction;
+            u32 attributes;
+        };
+
         void InitializeNpad();
         void SetSupportedNpadIdType(u32 const* , u64);
         void SetSupportedNpadStyleSet(nn::util::BitFlagSet<32, nn::hid::NpadStyleTag>);
@@ -120,7 +207,18 @@ namespace nn
         int GetNpadStates(nn::hid::NpadFullKeyState *outArray, s32 count, u32 const &controllerID);
         void GetNpadState(nn::hid::NpadHandheldState *out, u32 const &controllerID);
         void GetNpadState(nn::hid::NpadFullKeyState *out, u32 const &controllerID);
-        static int ShowControllerSupport(nn::hid::ControllerSupportResultInfo *, ControllerSupportArg const&);
+        int GetGestureStates(GestureState *outArray, int count);
+        int GetSixAxisSensorHandles(SixAxisSensorHandle* pOutValues, int count, u32 const &controllerID, NpadStyleSet style);
+        void StartSixAxisSensor(const SixAxisSensorHandle& handle);
+        void StopSixAxisSensor(const SixAxisSensorHandle& handle);
+        bool IsSixAxisSensorAtRest(const SixAxisSensorHandle& handle);
+        void GetSixAxisSensorState(SixAxisSensorState* outValue, const SixAxisSensorHandle& handle);
+        int GetSixAxisSensorStates(SixAxisSensorState* outStates, int count, const SixAxisSensorHandle& handle);
+        bool IsSixAxisSensorFusionEnabled(const SixAxisSensorHandle& handle);
+        void EnableSixAxisSensorFusion(const SixAxisSensorHandle& handle, bool enable);
+        void SetGyroscopeZeroDriftMode(const SixAxisSensorHandle& handle, const GyroscopeZeroDriftMode& mode);
+        GyroscopeZeroDriftMode GetGyroscopeZeroDriftMode(const SixAxisSensorHandle& handle);
+        int ShowControllerSupport(nn::hid::ControllerSupportResultInfo *, ControllerSupportArg const&);
 
     };
 };
