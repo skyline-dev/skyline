@@ -93,7 +93,8 @@ namespace plugin {
                 skyline::logger::s_Instance->LogFormat("[PluginManager] Loaded %s", kv.first.c_str(), &plugin.Module.Name);
             } else {
                skyline::logger::s_Instance->LogFormat("[PluginManager] Failed to load %s, return code: 0x%x", kv.first.c_str(), rc);
-               plugins.erase(kv.first);
+               // TODO: Don't attempt to run plugin main if we fail to load.
+               // plugins.erase(kv.first);
             }
         }
 
