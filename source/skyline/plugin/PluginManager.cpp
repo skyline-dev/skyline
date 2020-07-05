@@ -145,7 +145,7 @@ namespace plugin {
                 skyline::logger::s_Instance->LogFormat("[PluginManager] Loaded %s", kv.first.c_str(), &plugin.Module.Name);
             } else {
                skyline::logger::s_Instance->LogFormat("[PluginManager] Failed to load %s, return code: 0x%x", kv.first.c_str(), rc);
-                
+              
                // couldn't be loaded, free unused memory
                free(bss);
                free(plugin.Data);
