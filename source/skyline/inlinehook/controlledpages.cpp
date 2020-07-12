@@ -119,7 +119,7 @@ namespace skyline::inlinehook {
         if(!isClaimed) {
             // get actual pages
             u64 alignedSrc = ALIGN_DOWN((u64)rx, PAGE_SIZE);
-            size_t alignedSize = ALIGN_UP(size, PAGE_SIZE);
+            size_t alignedSize = ALIGN_UP((u64)rx + size, PAGE_SIZE) - alignedSrc;
             
             // reserve space for rw pages
             u64 dst;
@@ -144,7 +144,7 @@ namespace skyline::inlinehook {
             // get actual pages
             u64 alignedSrc = ALIGN_DOWN((u64)rx, PAGE_SIZE);
             void* alignedDst = (void*) ALIGN_DOWN((u64)rw, PAGE_SIZE);
-            size_t alignedSize = ALIGN_UP(size, PAGE_SIZE);
+            size_t alignedSize = ALIGN_UP((u64)rx + size, PAGE_SIZE) - alignedSrc;
 
             // invalidate caches
             armDCacheFlush((void*)alignedDst, size);
