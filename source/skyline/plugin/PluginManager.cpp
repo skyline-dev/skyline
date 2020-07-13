@@ -139,7 +139,7 @@ namespace plugin {
 
             void* bss = memalign(0x1000, bssSize); // must be page aligned 
 
-            rc = nn::ro::LoadModule(&plugin.Module, plugin.Data, bss, bufferSize, nn::ro::BindFlag_Now);// bind immediately, so all symbols are immediately available
+            rc = nn::ro::LoadModule(&plugin.Module, plugin.Data, bss, bssSize, nn::ro::BindFlag_Now);// bind immediately, so all symbols are immediately available
  
             if(R_SUCCEEDED(rc)) {
                 skyline::logger::s_Instance->LogFormat("[PluginManager] Loaded %s", kv.first.c_str(), &plugin.Module.Name);
