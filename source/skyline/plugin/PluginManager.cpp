@@ -52,7 +52,7 @@ namespace plugin {
             plugin.Size = fileSize;
             plugin.Data = memalign(0x1000, plugin.Size);
 
-            rc = R_SUCCEEDED(skyline::utils::readFile(path, 0, plugin.Data, plugin.Size);
+            rc = skyline::utils::readFile(path, 0, plugin.Data, plugin.Size);
             if(R_SUCCEEDED(rc))
                 skyline::logger::s_Instance->LogFormat("[PluginManager] Read %s", path.c_str());
             else {
@@ -77,10 +77,10 @@ namespace plugin {
         nn::ro::NrrHeader nrr = {
             .magic = 0x3052524E, // NRR0
             .program_id = {program_id},
+            .size = nrrSize,
             .type = 0, // ForSelf
             .hashes_offset = sizeof(nn::ro::NrrHeader),
             .num_hashes = plugins.size(),
-            .size = nrrSize,
         };
         
         char* nrrBin = (char*) memalign(0x1000, nrrSize); // must be page aligned 
@@ -125,7 +125,7 @@ namespace plugin {
 
             // attempt to get the required size for the bss 
             size_t bssSize;
-            if(R_FAILED(nn::ro::GetBufferSize(&bssSize, plugin.Data)) {
+            if(R_FAILED(nn::ro::GetBufferSize(&bssSize, plugin.Data))) {
                 // ro rejected file, bail (the original input is not validated to be an actual NRO, so this isn't unusual)
                 
                 // we don't need the file data any more
