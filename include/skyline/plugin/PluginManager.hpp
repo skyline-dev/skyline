@@ -9,6 +9,8 @@
 
 namespace skyline::plugin {
 
+    static constexpr auto PLUGIN_PATH = "skyline/plugins";
+
     struct PluginInfo {
         std::string Path;
         std::unique_ptr<u8> Data;
@@ -20,10 +22,11 @@ namespace skyline::plugin {
     };
 
     class Manager {
-        private:
+       private:
         std::list<PluginInfo> m_pluginInfos;
         std::unique_ptr<u8> m_nrrBuffer;
         size_t m_nrrSize;
+        nn::ro::RegistrationInfo m_registrationInfo;
 
         static inline auto& GetInstance() {
             static Manager s_instance;
@@ -32,8 +35,8 @@ namespace skyline::plugin {
 
         void LoadPluginsImpl();
 
-        public:
+       public:
         static inline void LoadPlugins() { GetInstance().LoadPluginsImpl(); }
     };
 
-};
+};  // namespace skyline::plugin
