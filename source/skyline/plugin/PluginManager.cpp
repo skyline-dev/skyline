@@ -84,6 +84,7 @@ namespace plugin {
         };
         
         char* nrrBin = (char*) memalign(0x1000, nrrSize); // must be page aligned 
+        memset(nrrBin, 0, nrrSize);
 
         skyline::logger::s_Instance->LogFormat("[PluginManager] Calculating hashes...");
         std::vector<utils::Sha256Hash> sortedHashes;
