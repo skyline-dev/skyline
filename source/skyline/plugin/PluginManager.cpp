@@ -1,5 +1,7 @@
 #include "skyline/plugin/PluginManager.hpp"
 
+#include <set>
+
 namespace skyline {
 namespace plugin {
 
@@ -66,6 +68,22 @@ namespace plugin {
             }
         }
 
+        skyline::logger::s_Instance->LogFormat("[PluginManager] Calculating hashes...");
+
+        // ro requires hashes to be sorted
+        std::set<utils::Sha256Hash> sortedHashes;
+        for (auto& kv : plugins) {
+            PluginInfo& plugin = kv.second;
+            nn::ro::NroHeader* nro = (nn::ro::NroHeader*)plugin.Data;
+            nn::crypto::GenerateSha256Hash(&plugin.Hash, sizeof(utils::Sha256Hash), nro, nro->size);
+            if (sortedHashes.find(plugin.Hash) == sortedHashes.end()) {
+                sortedHashes.insert(plugin.Hash);
+            } else {
+                // duplicate, stop tracking
+                plugins.erase(kv.first);
+            }
+        }
+
         // (sizeof(nrr header) + sizeof(sha256) * plugin count) aligned by 0x1000, as required by ro
         size_t nrrSize = ALIGN_UP(sizeof(nn::ro::NrrHeader) + (plugins.size() * sizeof(utils::Sha256Hash)), 0x1000);
 
@@ -86,20 +104,12 @@ namespace plugin {
         char* nrrBin = (char*) memalign(0x1000, nrrSize); // must be page aligned 
         memset(nrrBin, 0, nrrSize);
 
-        skyline::logger::s_Instance->LogFormat("[PluginManager] Calculating hashes...");
-        std::vector<utils::Sha256Hash> sortedHashes;
-        for (auto& kv : plugins) {
-            PluginInfo& plugin = kv.second;
-            nn::ro::NroHeader* nro = (nn::ro::NroHeader*)plugin.Data;
-            nn::crypto::GenerateSha256Hash(&plugin.Hash, sizeof(utils::Sha256Hash), nro, nro->size);
-            sortedHashes.push_back(plugin.Hash);
-        }
-        // sort hashes, as required by ro
-        std::sort(sortedHashes.begin(), sortedHashes.end());
-        
         // copy hashes into nrr
         utils::Sha256Hash* hashes = reinterpret_cast<utils::Sha256Hash*>((u64)(nrrBin) + nrr.hashes_offset);
-        memcpy(hashes, sortedHashes.data(), sizeof(utils::Sha256Hash) * sortedHashes.size());
+        auto curHashIdx = 0;
+        for (auto hash : sortedHashes) {
+            hashes[curHashIdx++] = hash;
+        }
 
         // copy header into nrr
         memcpy(nrrBin, &nrr, sizeof(nn::ro::NrrHeader));
