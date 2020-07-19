@@ -78,8 +78,8 @@ void skyline_main() {
         Result rc = nn::fs::MountSdCardForDebug("sd");
         skyline::logger::s_Instance->LogFormat("[skyline_main] Mounted SD (0x%x)", rc);
 
-        // init plugins
-        skyline::plugin::Manager::Init();
+        // load plugins
+        skyline::plugin::Manager::LoadPlugins();
     }};
 
     taskQueue->push(new std::unique_ptr<skyline::utils::Task>(after_romfs_task));

@@ -1,31 +1,35 @@
 #pragma once
 
-#include <algorithm>
+#include <list>
 #include <memory>
 #include <string>
-#include <unordered_map>
 
-#include "alloc.h"
-#include "mem.h"
-#include "nn/crypto.h"
 #include "nn/ro.h"
-#include "operator.h"
-#include "skyline/logger/TcpLogger.hpp"
 #include "skyline/utils/cpputils.hpp"
-#include "types.h"
 
 namespace skyline::plugin {
 
-class PluginInfo {
-   public:
-    void* Data;
-    size_t Size;
-    utils::Sha256Hash Hash;
-    nn::ro::Module Module;
-};
+    struct PluginInfo {
+        std::string Path;
+        void* Data;
+        size_t Size;
+        utils::Sha256Hash Hash;
+        nn::ro::Module Module;
+    };
 
-class Manager {
-   public:
-    static void Init();
+    class Manager {
+        private:
+        std::list<PluginInfo> m_pluginInfos;
+
+        static inline auto& GetInstance() {
+            static Manager s_instance;
+            return s_instance;
+        }
+
+        void LoadPluginsImpl();
+
+        public:
+        static inline void LoadPlugins() { GetInstance().LoadPluginsImpl(); }
+    };
+
 };
-};  // namespace skyline::plugin
