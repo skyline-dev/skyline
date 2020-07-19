@@ -6,12 +6,12 @@
  * @copyright libnx Authors
  */
 #pragma once
-#include "../result.h"
 #include "../arm/tls.h"
 #include "../kernel/svc.h"
+#include "../result.h"
 
 #define HIPC_AUTO_RECV_STATIC UINT8_MAX
-#define HIPC_RESPONSE_NO_PID  UINT32_MAX
+#define HIPC_RESPONSE_NO_PID UINT32_MAX
 
 typedef struct HipcMetadata {
     u32 type;
@@ -20,53 +20,53 @@ typedef struct HipcMetadata {
     u32 num_recv_buffers;
     u32 num_exch_buffers;
     u32 num_data_words;
-    u32 num_recv_statics; // also accepts HIPC_AUTO_RECV_STATIC
+    u32 num_recv_statics;  // also accepts HIPC_AUTO_RECV_STATIC
     u32 send_pid;
     u32 num_copy_handles;
     u32 num_move_handles;
 } HipcMetadata;
 
 typedef struct HipcHeader {
-    u32 type               : 16;
-    u32 num_send_statics   : 4;
-    u32 num_send_buffers   : 4;
-    u32 num_recv_buffers   : 4;
-    u32 num_exch_buffers   : 4;
-    u32 num_data_words     : 10;
-    u32 recv_static_mode   : 4;
-    u32 padding            : 6;
-    u32 recv_list_offset   : 11; // Unused.
+    u32 type : 16;
+    u32 num_send_statics : 4;
+    u32 num_send_buffers : 4;
+    u32 num_recv_buffers : 4;
+    u32 num_exch_buffers : 4;
+    u32 num_data_words : 10;
+    u32 recv_static_mode : 4;
+    u32 padding : 6;
+    u32 recv_list_offset : 11;  // Unused.
     u32 has_special_header : 1;
 } HipcHeader;
 
 typedef struct HipcSpecialHeader {
-    u32 send_pid         : 1;
+    u32 send_pid : 1;
     u32 num_copy_handles : 4;
     u32 num_move_handles : 4;
-    u32 padding          : 23;
+    u32 padding : 23;
 } HipcSpecialHeader;
 
 typedef struct HipcStaticDescriptor {
-    u32 index        : 6;
+    u32 index : 6;
     u32 address_high : 6;
-    u32 address_mid  : 4;
-    u32 size         : 16;
+    u32 address_mid : 4;
+    u32 size : 16;
     u32 address_low;
 } HipcStaticDescriptor;
 
 typedef struct HipcBufferDescriptor {
     u32 size_low;
     u32 address_low;
-    u32 mode         : 2;
+    u32 mode : 2;
     u32 address_high : 22;
-    u32 size_high    : 4;
-    u32 address_mid  : 4;
+    u32 size_high : 4;
+    u32 address_mid : 4;
 } HipcBufferDescriptor;
 
 typedef struct HipcRecvListEntry {
     u32 address_low;
     u32 address_high : 16;
-    u32 size         : 16;
+    u32 size : 16;
 } HipcRecvListEntry;
 
 typedef struct HipcRequest {
@@ -99,66 +99,56 @@ typedef struct HipcResponse {
 } HipcResponse;
 
 typedef enum HipcBufferMode {
-    HipcBufferMode_Normal    = 0,
+    HipcBufferMode_Normal = 0,
     HipcBufferMode_NonSecure = 1,
-    HipcBufferMode_Invalid   = 2,
+    HipcBufferMode_Invalid = 2,
     HipcBufferMode_NonDevice = 3,
 } HipcBufferMode;
 
-NX_CONSTEXPR HipcStaticDescriptor hipcMakeSendStatic(const void* buffer, size_t size, u8 index)
-{
+NX_CONSTEXPR HipcStaticDescriptor hipcMakeSendStatic(const void* buffer, size_t size, u8 index) {
     return (HipcStaticDescriptor){
-        .index        = index,
+        .index = index,
         .address_high = (u32)((uintptr_t)buffer >> 36),
-        .address_mid  = (u32)((uintptr_t)buffer >> 32),
-        .size         = (u32)size,
-        .address_low  = (u32)(uintptr_t)buffer,
+        .address_mid = (u32)((uintptr_t)buffer >> 32),
+        .size = (u32)size,
+        .address_low = (u32)(uintptr_t)buffer,
     };
 }
 
-NX_CONSTEXPR HipcBufferDescriptor hipcMakeBuffer(const void* buffer, size_t size, HipcBufferMode mode)
-{
+NX_CONSTEXPR HipcBufferDescriptor hipcMakeBuffer(const void* buffer, size_t size, HipcBufferMode mode) {
     return (HipcBufferDescriptor){
-        .size_low     = (u32)size,
-        .address_low  = (u32)(uintptr_t)buffer,
-        .mode         = mode,
+        .size_low = (u32)size,
+        .address_low = (u32)(uintptr_t)buffer,
+        .mode = mode,
         .address_high = (u32)((uintptr_t)buffer >> 36),
-        .size_high    = (u32)(size >> 32),
-        .address_mid  = (u32)((uintptr_t)buffer >> 32),
+        .size_high = (u32)(size >> 32),
+        .address_mid = (u32)((uintptr_t)buffer >> 32),
     };
 }
 
-NX_CONSTEXPR HipcRecvListEntry hipcMakeRecvStatic(void* buffer, size_t size)
-{
+NX_CONSTEXPR HipcRecvListEntry hipcMakeRecvStatic(void* buffer, size_t size) {
     return (HipcRecvListEntry){
-        .address_low  = (u32)((uintptr_t)buffer),
+        .address_low = (u32)((uintptr_t)buffer),
         .address_high = (u32)((uintptr_t)buffer >> 32),
-        .size         = (u32)size,
+        .size = (u32)size,
     };
 }
 
-NX_CONSTEXPR void* hipcGetStaticAddress(const HipcStaticDescriptor* desc)
-{
+NX_CONSTEXPR void* hipcGetStaticAddress(const HipcStaticDescriptor* desc) {
     return (void*)(desc->address_low | ((uintptr_t)desc->address_mid << 32) | ((uintptr_t)desc->address_high << 36));
 }
 
-NX_CONSTEXPR size_t hipcGetStaticSize(const HipcStaticDescriptor* desc)
-{
-    return desc->size;
-}
+NX_CONSTEXPR size_t hipcGetStaticSize(const HipcStaticDescriptor* desc) { return desc->size; }
 
-NX_CONSTEXPR void* hipcGetBufferAddress(const HipcBufferDescriptor* desc)
-{
+NX_CONSTEXPR void* hipcGetBufferAddress(const HipcBufferDescriptor* desc) {
     return (void*)(desc->address_low | ((uintptr_t)desc->address_mid << 32) | ((uintptr_t)desc->address_high << 36));
 }
 
-NX_CONSTEXPR size_t hipcGetBufferSize(const HipcBufferDescriptor* desc)
-{
+NX_CONSTEXPR size_t hipcGetBufferSize(const HipcBufferDescriptor* desc) {
     return desc->size_low | ((size_t)desc->size_high << 32);
 }
 
-NX_CONSTEXPR HipcRequest hipcCalcRequestLayout(HipcMetadata meta, void* base)
-{
+NX_CONSTEXPR HipcRequest hipcCalcRequestLayout(HipcMetadata meta, void* base) {
     // Copy handles
     Handle* copy_handles = NULL;
     if (meta.num_copy_handles) {
@@ -210,8 +200,7 @@ NX_CONSTEXPR HipcRequest hipcCalcRequestLayout(HipcMetadata meta, void* base)
 
     // Recv list
     HipcRecvListEntry* recv_list = NULL;
-    if (meta.num_recv_statics)
-        recv_list = (HipcRecvListEntry*)base;
+    if (meta.num_recv_statics) recv_list = (HipcRecvListEntry*)base;
 
     return (HipcRequest){
         .send_statics = send_statics,
@@ -225,46 +214,45 @@ NX_CONSTEXPR HipcRequest hipcCalcRequestLayout(HipcMetadata meta, void* base)
     };
 }
 
-NX_CONSTEXPR HipcRequest hipcMakeRequest(void* base, HipcMetadata meta)
-{
+NX_CONSTEXPR HipcRequest hipcMakeRequest(void* base, HipcMetadata meta) {
     // Write message header
     bool has_special_header = meta.send_pid || meta.num_copy_handles || meta.num_move_handles;
     HipcHeader* hdr = (HipcHeader*)base;
-    base = hdr+1;
+    base = hdr + 1;
     *hdr = (HipcHeader){
         .type = meta.type,
-        .num_send_statics   = meta.num_send_statics,
-        .num_send_buffers   = meta.num_send_buffers,
-        .num_recv_buffers   = meta.num_recv_buffers,
-        .num_exch_buffers   = meta.num_exch_buffers,
-        .num_data_words     = meta.num_data_words,
-        .recv_static_mode   = meta.num_recv_statics ? (meta.num_recv_statics != HIPC_AUTO_RECV_STATIC ? 2u + meta.num_recv_statics : 2u) : 0u,
-        .padding            = 0,
-        .recv_list_offset   = 0,
+        .num_send_statics = meta.num_send_statics,
+        .num_send_buffers = meta.num_send_buffers,
+        .num_recv_buffers = meta.num_recv_buffers,
+        .num_exch_buffers = meta.num_exch_buffers,
+        .num_data_words = meta.num_data_words,
+        .recv_static_mode = meta.num_recv_statics
+                                ? (meta.num_recv_statics != HIPC_AUTO_RECV_STATIC ? 2u + meta.num_recv_statics : 2u)
+                                : 0u,
+        .padding = 0,
+        .recv_list_offset = 0,
         .has_special_header = has_special_header,
     };
 
     // Write special header
     if (has_special_header) {
         HipcSpecialHeader* sphdr = (HipcSpecialHeader*)base;
-        base = sphdr+1;
+        base = sphdr + 1;
         *sphdr = (HipcSpecialHeader){
-            .send_pid         = meta.send_pid,
+            .send_pid = meta.send_pid,
             .num_copy_handles = meta.num_copy_handles,
             .num_move_handles = meta.num_move_handles,
         };
-        if (meta.send_pid)
-            base = (u8*)base + sizeof(u64);
+        if (meta.send_pid) base = (u8*)base + sizeof(u64);
     }
 
     // Calculate layout
     return hipcCalcRequestLayout(meta, base);
 }
 
-#define hipcMakeRequestInline(_base,...) hipcMakeRequest((_base),(HipcMetadata){ __VA_ARGS__ })
+#define hipcMakeRequestInline(_base, ...) hipcMakeRequest((_base), (HipcMetadata){__VA_ARGS__})
 
-NX_CONSTEXPR HipcParsedRequest hipcParseRequest(void* base)
-{
+NX_CONSTEXPR HipcParsedRequest hipcParseRequest(void* base) {
     // Parse message header
     HipcHeader hdr = {};
     __builtin_memcpy(&hdr, base, sizeof(hdr));
@@ -294,14 +282,14 @@ NX_CONSTEXPR HipcParsedRequest hipcParseRequest(void* base)
     }
 
     const HipcMetadata meta = {
-        .type             = hdr.type,
+        .type = hdr.type,
         .num_send_statics = hdr.num_send_statics,
         .num_send_buffers = hdr.num_send_buffers,
         .num_recv_buffers = hdr.num_recv_buffers,
         .num_exch_buffers = hdr.num_exch_buffers,
-        .num_data_words   = hdr.num_data_words,
+        .num_data_words = hdr.num_data_words,
         .num_recv_statics = num_recv_statics,
-        .send_pid         = sphdr.send_pid,
+        .send_pid = sphdr.send_pid,
         .num_copy_handles = sphdr.num_copy_handles,
         .num_move_handles = sphdr.num_move_handles,
     };
@@ -309,12 +297,11 @@ NX_CONSTEXPR HipcParsedRequest hipcParseRequest(void* base)
     return (HipcParsedRequest){
         .meta = meta,
         .data = hipcCalcRequestLayout(meta, base),
-        .pid  = pid,
+        .pid = pid,
     };
 }
 
-NX_CONSTEXPR HipcResponse hipcParseResponse(void* base)
-{
+NX_CONSTEXPR HipcResponse hipcParseResponse(void* base) {
     // Parse header
     HipcHeader hdr = {};
     __builtin_memcpy(&hdr, base, sizeof(hdr));
@@ -327,8 +314,7 @@ NX_CONSTEXPR HipcResponse hipcParseResponse(void* base)
     response.pid = HIPC_RESPONSE_NO_PID;
 
     // Parse special header
-    if (hdr.has_special_header)
-    {
+    if (hdr.has_special_header) {
         HipcSpecialHeader sphdr = {};
         __builtin_memcpy(&sphdr, base, sizeof(sphdr));
         base = (u8*)base + sizeof(sphdr);

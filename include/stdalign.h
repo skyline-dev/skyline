@@ -54,21 +54,31 @@
 
 /* GCC releases before GCC 4.9 had a bug in _Alignof.  See GCC bug 52023
    <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=52023>.  */
-#if (!defined __STDC_VERSION__ || __STDC_VERSION__ < 201112 \
-     || (defined __GNUC__ && __GNUC__ < 4 + (__GNUC_MINOR__ < 9)))
-# ifdef __cplusplus
-#  if 201103 <= __cplusplus
-#   define _Alignof(type) alignof (type)
-#  else
-   template <class __t> struct __alignof_helper { char __a; __t __b; };
-#   define _Alignof(type) offsetof (__alignof_helper<type>, __b)
-#  endif
-# else
-#  define _Alignof(type) offsetof (struct { char __a; type __b; }, __b)
-# endif
+#if (!defined __STDC_VERSION__ || __STDC_VERSION__ < 201112 || \
+     (defined __GNUC__ && __GNUC__ < 4 + (__GNUC_MINOR__ < 9)))
+#ifdef __cplusplus
+#if 201103 <= __cplusplus
+#define _Alignof(type) alignof(type)
+#else
+template <class __t>
+struct __alignof_helper {
+    char __a;
+    __t __b;
+};
+#define _Alignof(type) offsetof(__alignof_helper<type>, __b)
 #endif
-#if ! (defined __cplusplus && 201103 <= __cplusplus)
-# define alignof _Alignof
+#else
+#define _Alignof(type) \
+    offsetof(          \
+        struct {       \
+            char __a;  \
+            type __b;  \
+        },             \
+        __b)
+#endif
+#endif
+#if !(defined __cplusplus && 201103 <= __cplusplus)
+#define alignof _Alignof
 #endif
 #define __alignof_is_defined 1
 
@@ -98,24 +108,21 @@
    */
 
 #if !defined __STDC_VERSION__ || __STDC_VERSION__ < 201112
-# if defined __cplusplus && 201103 <= __cplusplus
-#  define _Alignas(a) alignas (a)
-# elif ((defined __APPLE__ && defined __MACH__                  \
-         ? 4 < __GNUC__ + (1 <= __GNUC_MINOR__)                 \
-         : __GNUC__)                                            \
-        || (__ia64 && (61200 <= __HP_cc || 61200 <= __HP_aCC)) \
-        || __ICC || 0x590 <= __SUNPRO_C || 0x0600 <= __xlC__)
-#  define _Alignas(a) __attribute__ ((__aligned__ (a)))
-# elif 1300 <= _MSC_VER
-#  define _Alignas(a) __declspec (align (a))
-# endif
+#if defined __cplusplus && 201103 <= __cplusplus
+#define _Alignas(a) alignas(a)
+#elif ((defined __APPLE__ && defined __MACH__ ? 4 < __GNUC__ + (1 <= __GNUC_MINOR__) : __GNUC__) || \
+       (__ia64 && (61200 <= __HP_cc || 61200 <= __HP_aCC)) || __ICC || 0x590 <= __SUNPRO_C || 0x0600 <= __xlC__)
+#define _Alignas(a) __attribute__((__aligned__(a)))
+#elif 1300 <= _MSC_VER
+#define _Alignas(a) __declspec(align(a))
 #endif
-#if ((defined _Alignas && ! (defined __cplusplus && 201103 <= __cplusplus)) \
-     || (defined __STDC_VERSION__ && 201112 <= __STDC_VERSION__))
-# define alignas _Alignas
+#endif
+#if ((defined _Alignas && !(defined __cplusplus && 201103 <= __cplusplus)) || \
+     (defined __STDC_VERSION__ && 201112 <= __STDC_VERSION__))
+#define alignas _Alignas
 #endif
 #if defined alignas || (defined __cplusplus && 201103 <= __cplusplus)
-# define __alignas_is_defined 1
+#define __alignas_is_defined 1
 #endif
 
 #endif /* _GL_STDALIGN_H */

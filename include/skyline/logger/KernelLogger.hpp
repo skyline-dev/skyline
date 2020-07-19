@@ -1,20 +1,16 @@
 #pragma once
 
-#include "skyline/logger/Logger.hpp"
-
 #include <string>
 
+#include "skyline/logger/Logger.hpp"
+
 namespace skyline::logger {
-    class KernelLogger : public Logger
-    {
-        public:
+class KernelLogger : public Logger {
+   public:
+    KernelLogger();
 
-        KernelLogger();
-
-        virtual void Initialize();
-        virtual void SendRaw(void*, size_t);
-        virtual std::string FriendlyName() {
-            return "KernelLogger";
-        }
-    };
+    virtual void Initialize();
+    virtual void SendRaw(void*, size_t);
+    virtual std::string FriendlyName() { return "KernelLogger"; }
 };
+};  // namespace skyline::logger

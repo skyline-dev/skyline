@@ -18,4 +18,4 @@ void randomGet(void* buf, size_t len);
  * @brief Returns a random 64-bit value.
  * @return Random value.
  */
-u64  randomGet64(void);
+u64 randomGet64(void);

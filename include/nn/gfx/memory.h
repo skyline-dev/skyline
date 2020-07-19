@@ -5,12 +5,10 @@
 
 #pragma once
 
-namespace nn
-{
-    namespace gfx
-    {
-        // todo: finish me!
-        template<typename T>
-        class TMemoryPool { };
-    };
-};
+namespace nn {
+namespace gfx {
+    // todo: finish me!
+    template <typename T>
+    class TMemoryPool {};
+};  // namespace gfx
+};  // namespace nn

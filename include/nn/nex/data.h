@@ -7,18 +7,15 @@
 
 #include "RootObject.h"
 
-namespace nn
-{
-    namespace nex
-    {
-        class Data : public nn::nex::RootObject
-        {
-        public:
-            Data();
+namespace nn {
+namespace nex {
+    class Data : public nn::nex::RootObject {
+       public:
+        Data();
 
-            virtual ~Data();
+        virtual ~Data();
 
-            u8 _8;
-        };
+        u8 _8;
     };
-};
+};  // namespace nex
+};  // namespace nn

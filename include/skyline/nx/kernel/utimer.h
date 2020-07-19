@@ -11,8 +11,8 @@ typedef struct UTimer UTimer;
 
 /// Valid types for a user-mode timer.
 typedef enum {
-    TimerType_OneShot,   ///< Timers of this kind fire once and then stop automatically.
-    TimerType_Repeating, ///< Timers of this kind fire periodically.
+    TimerType_OneShot,    ///< Timers of this kind fire once and then stop automatically.
+    TimerType_Repeating,  ///< Timers of this kind fire periodically.
 } TimerType;
 
 /// User-mode timer object.
@@ -25,8 +25,7 @@ struct UTimer {
 };
 
 /// Creates a waiter for a user-mode timer.
-static inline Waiter waiterForUTimer(UTimer* t)
-{
+static inline Waiter waiterForUTimer(UTimer* t) {
     Waiter wait_obj;
     wait_obj.type = WaiterType_Waitable;
     wait_obj.waitable = &t->waitable;

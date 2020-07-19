@@ -34,4 +34,4 @@ typedef struct {
 
 typedef struct {
     char _x0[0x40];
-}  NVNdeviceBuilder;
+} NVNdeviceBuilder;

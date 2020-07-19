@@ -6,9 +6,9 @@
  */
 #pragma once
 #include <sys/lock.h>
-#include "types.h"
-#include "nn/os.h"
 
+#include "nn/os.h"
+#include "types.h"
 
 /// Mutex datatype, defined in newlib.
 typedef nnosMutexType Mutex;
@@ -20,10 +20,7 @@ typedef nnosMutexType RMutex;
  * @param m Mutex object.
  * @note A mutex can also be statically initialized by assigning 0 to it.
  */
-static inline void mutexInit(Mutex* m)
-{
-    nnosInitializeMutex(m, false, 0);
-}
+static inline void mutexInit(Mutex* m) { nnosInitializeMutex(m, false, 0); }
 
 /**
  * @brief Locks a mutex.
@@ -49,10 +46,7 @@ void mutexUnlock(Mutex* m);
  * @param m Recursive mutex object.
  * @note A recursive mutex can also be statically initialized by assigning {0,0,0} to it.
  */
-static inline void rmutexInit(RMutex* m)
-{
-    nnosInitializeMutex(m, true, 0);
-}
+static inline void rmutexInit(RMutex* m) { nnosInitializeMutex(m, true, 0); }
 
 /**
  * @brief Locks a recursive mutex.

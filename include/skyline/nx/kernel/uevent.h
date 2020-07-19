@@ -17,8 +17,7 @@ struct UEvent {
 };
 
 /// Creates a waiter for a user-mode event.
-static inline Waiter waiterForUEvent(UEvent* e)
-{
+static inline Waiter waiterForUEvent(UEvent* e) {
     Waiter wait_obj;
     wait_obj.type = WaiterType_Waitable;
     wait_obj.waitable = &e->waitable;

@@ -6,8 +6,8 @@
  * @copyright libnx Authors
  */
 #pragma once
-#include "hipc.h"
 #include "cmif.h"
+#include "hipc.h"
 
 /// Service object structure
 typedef struct Service {
@@ -18,12 +18,12 @@ typedef struct Service {
 } Service;
 
 enum {
-    SfBufferAttr_In                             = BIT(0),
-    SfBufferAttr_Out                            = BIT(1),
-    SfBufferAttr_HipcMapAlias                   = BIT(2),
-    SfBufferAttr_HipcPointer                    = BIT(3),
-    SfBufferAttr_FixedSize                      = BIT(4),
-    SfBufferAttr_HipcAutoSelect                 = BIT(5),
+    SfBufferAttr_In = BIT(0),
+    SfBufferAttr_Out = BIT(1),
+    SfBufferAttr_HipcMapAlias = BIT(2),
+    SfBufferAttr_HipcPointer = BIT(3),
+    SfBufferAttr_FixedSize = BIT(4),
+    SfBufferAttr_HipcAutoSelect = BIT(5),
     SfBufferAttr_HipcMapTransferAllowsNonSecure = BIT(6),
     SfBufferAttr_HipcMapTransferAllowsNonDevice = BIT(7),
 };
@@ -45,7 +45,7 @@ typedef struct SfBuffer {
 } SfBuffer;
 
 typedef enum SfOutHandleAttr {
-    SfOutHandleAttr_None     = 0,
+    SfOutHandleAttr_None = 0,
     SfOutHandleAttr_HipcCopy = 1,
     SfOutHandleAttr_HipcMove = 2,
 } SfOutHandleAttr;
@@ -88,27 +88,21 @@ typedef struct SfDispatchParams {
  * @param[in] s Service object.
  * @return true if initialized.
  */
-NX_CONSTEXPR bool serviceIsActive(Service* s) {
-    return s->session != INVALID_HANDLE;
-}
+NX_CONSTEXPR bool serviceIsActive(Service* s) { return s->session != INVALID_HANDLE; }
 
 /**
  * @brief Returns whether a service is overriden in the homebrew environment.
  * @param[in] s Service object.
  * @return true if overriden.
  */
-NX_CONSTEXPR bool serviceIsOverride(Service* s) {
-    return serviceIsActive(s) && !s->own_handle && !s->object_id;
-}
+NX_CONSTEXPR bool serviceIsOverride(Service* s) { return serviceIsActive(s) && !s->own_handle && !s->object_id; }
 
 /**
  * @brief Returns whether a service is a domain.
  * @param[in] s Service object.
  * @return true if a domain.
  */
-NX_CONSTEXPR bool serviceIsDomain(Service* s) {
-    return serviceIsActive(s) && s->own_handle && s->object_id;
-}
+NX_CONSTEXPR bool serviceIsDomain(Service* s) { return serviceIsActive(s) && s->own_handle && s->object_id; }
 
 /**
  * @brief Returns whether a service is a domain subservice.
@@ -124,17 +118,14 @@ NX_CONSTEXPR bool serviceIsDomainSubservice(Service* s) {
  * @param[in] s Service object, necessarily a domain or domain subservice.
  * @return The object ID.
  */
-NX_CONSTEXPR u32 serviceGetObjectId(Service* s) {
-    return s->object_id;
-}
+NX_CONSTEXPR u32 serviceGetObjectId(Service* s) { return s->object_id; }
 
 /**
  * @brief Creates a service object from an IPC session handle.
  * @param[out] s Service object.
  * @param[in] h IPC session handle.
  */
-NX_INLINE void serviceCreate(Service* s, Handle h)
-{
+NX_INLINE void serviceCreate(Service* s, Handle h) {
     s->session = h;
     s->own_handle = 1;
     s->object_id = 0;
@@ -148,8 +139,7 @@ NX_INLINE void serviceCreate(Service* s, Handle h)
  * @param[in] parent Parent service.
  * @param[in] h IPC session handle for this subservice.
  */
-NX_INLINE void serviceCreateNonDomainSubservice(Service* s, Service* parent, Handle h)
-{
+NX_INLINE void serviceCreateNonDomainSubservice(Service* s, Service* parent, Handle h) {
     s->session = h;
     s->own_handle = 1;
     s->object_id = 0;
@@ -162,8 +152,7 @@ NX_INLINE void serviceCreateNonDomainSubservice(Service* s, Service* parent, Han
  * @param[in] parent Parent service, necessarily a domain or domain subservice.
  * @param[in] object_id Object ID for this subservice.
  */
-NX_CONSTEXPR void serviceCreateDomainSubservice(Service* s, Service* parent, u32 object_id)
-{
+NX_CONSTEXPR void serviceCreateDomainSubservice(Service* s, Service* parent, u32 object_id) {
     s->session = parent->session;
     s->own_handle = 0;
     s->object_id = object_id;
@@ -174,27 +163,24 @@ NX_CONSTEXPR void serviceCreateDomainSubservice(Service* s, Service* parent, u32
  * @brief Hints the compiler that a service will always contain a domain object.
  * @param[in] _s Service object.
  */
-#define serviceAssumeDomain(_s) do { \
-    if (!(_s)->object_id) \
-        __builtin_unreachable(); \
-} while(0)
+#define serviceAssumeDomain(_s)                        \
+    do {                                               \
+        if (!(_s)->object_id) __builtin_unreachable(); \
+    } while (0)
 
 /**
  * @brief Closes a service.
  * @param[in] s Service object.
  */
-NX_INLINE void serviceClose(Service* s)
-{
+NX_INLINE void serviceClose(Service* s) {
 #if defined(NX_SERVICE_ASSUME_NON_DOMAIN)
-    if (s->object_id)
-        __builtin_unreachable();
+    if (s->object_id) __builtin_unreachable();
 #endif
 
     if (s->own_handle || s->object_id) {
         cmifMakeCloseRequest(armGetTls(), s->own_handle ? 0 : s->object_id);
         svcSendSyncRequest(s->session);
-        if (s->own_handle)
-            svcCloseHandle(s->session);
+        if (s->own_handle) svcCloseHandle(s->session);
     }
     *s = (Service){};
 }
@@ -204,11 +190,9 @@ NX_INLINE void serviceClose(Service* s)
  * @param[in] s Service object.
  * @param[out] out_s Output service object.
  */
-NX_INLINE Result serviceClone(Service* s, Service* out_s)
-{
+NX_INLINE Result serviceClone(Service* s, Service* out_s) {
 #if defined(NX_SERVICE_ASSUME_NON_DOMAIN)
-    if (s->object_id)
-        __builtin_unreachable();
+    if (s->object_id) __builtin_unreachable();
 #endif
 
     out_s->session = 0;
@@ -224,11 +208,9 @@ NX_INLINE Result serviceClone(Service* s, Service* out_s)
  * @param[in] tag Session manager tag (unused in current official server code)
  * @param[out] out_s Output service object.
  */
-NX_INLINE Result serviceCloneEx(Service* s, u32 tag, Service* out_s)
-{
+NX_INLINE Result serviceCloneEx(Service* s, u32 tag, Service* out_s) {
 #if defined(NX_SERVICE_ASSUME_NON_DOMAIN)
-    if (s->object_id)
-        __builtin_unreachable();
+    if (s->object_id) __builtin_unreachable();
 #endif
 
     out_s->session = 0;
@@ -243,63 +225,53 @@ NX_INLINE Result serviceCloneEx(Service* s, u32 tag, Service* out_s)
  * @param[in] s Service object.
  * @return Result code.
  */
-NX_INLINE Result serviceConvertToDomain(Service* s)
-{
+NX_INLINE Result serviceConvertToDomain(Service* s) {
     if (!s->own_handle) {
         // For overridden services, create a clone first.
         Result rc = cmifCloneCurrentObjectEx(s->session, 0, &s->session);
-        if (R_FAILED(rc))
-            return rc;
+        if (R_FAILED(rc)) return rc;
         s->own_handle = 1;
     }
 
     return cmifConvertCurrentObjectToDomain(s->session, &s->object_id);
 }
 
-NX_CONSTEXPR void _serviceRequestFormatProcessBuffer(CmifRequestFormat* fmt, u32 attr)
-{
+NX_CONSTEXPR void _serviceRequestFormatProcessBuffer(CmifRequestFormat* fmt, u32 attr) {
     if (!attr) return;
-    const bool is_in  = (attr & SfBufferAttr_In)  != 0;
+    const bool is_in = (attr & SfBufferAttr_In) != 0;
     const bool is_out = (attr & SfBufferAttr_Out) != 0;
 
     if (attr & SfBufferAttr_HipcAutoSelect) {
-        if (is_in)
-            fmt->num_in_auto_buffers ++;
-        if (is_out)
-            fmt->num_out_auto_buffers ++;
+        if (is_in) fmt->num_in_auto_buffers++;
+        if (is_out) fmt->num_out_auto_buffers++;
     } else if (attr & SfBufferAttr_HipcPointer) {
-        if (is_in)
-            fmt->num_in_pointers ++;
+        if (is_in) fmt->num_in_pointers++;
         if (is_out) {
             if (attr & SfBufferAttr_FixedSize)
-                fmt->num_out_fixed_pointers ++;
+                fmt->num_out_fixed_pointers++;
             else
-                fmt->num_out_pointers ++;
+                fmt->num_out_pointers++;
         }
     } else if (attr & SfBufferAttr_HipcMapAlias) {
         if (is_in && is_out)
-            fmt->num_inout_buffers ++;
+            fmt->num_inout_buffers++;
         else if (is_in)
-            fmt->num_in_buffers ++;
+            fmt->num_in_buffers++;
         else if (is_out)
-            fmt->num_out_buffers ++;
+            fmt->num_out_buffers++;
     }
 }
 
-NX_CONSTEXPR void _serviceRequestProcessBuffer(CmifRequest* req, const SfBuffer* buf, u32 attr)
-{
+NX_CONSTEXPR void _serviceRequestProcessBuffer(CmifRequest* req, const SfBuffer* buf, u32 attr) {
     if (!attr) return;
-    const bool is_in  = (attr & SfBufferAttr_In);
+    const bool is_in = (attr & SfBufferAttr_In);
     const bool is_out = (attr & SfBufferAttr_Out);
 
     if (attr & SfBufferAttr_HipcAutoSelect) {
-        if (is_in)
-            cmifRequestInAutoBuffer(req, buf->ptr, buf->size);
-        if (is_out)
-            cmifRequestOutAutoBuffer(req, (void*)buf->ptr, buf->size);
+        if (is_in) cmifRequestInAutoBuffer(req, buf->ptr, buf->size);
+        if (is_out) cmifRequestOutAutoBuffer(req, (void*)buf->ptr, buf->size);
     } else if (attr & SfBufferAttr_HipcPointer) {
-        if (is_in)
-            cmifRequestInPointer(req, buf->ptr, buf->size);
+        if (is_in) cmifRequestInPointer(req, buf->ptr, buf->size);
         if (is_out) {
             if (attr & SfBufferAttr_FixedSize)
                 cmifRequestOutFixedPointer(req, (void*)buf->ptr, buf->size);
@@ -308,10 +280,8 @@ NX_CONSTEXPR void _serviceRequestProcessBuffer(CmifRequest* req, const SfBuffer*
         }
     } else if (attr & SfBufferAttr_HipcMapAlias) {
         HipcBufferMode mode = HipcBufferMode_Normal;
-        if (attr & SfBufferAttr_HipcMapTransferAllowsNonSecure)
-            mode = HipcBufferMode_NonSecure;
-        if (attr & SfBufferAttr_HipcMapTransferAllowsNonDevice)
-            mode = HipcBufferMode_NonDevice;
+        if (attr & SfBufferAttr_HipcMapTransferAllowsNonSecure) mode = HipcBufferMode_NonSecure;
+        if (attr & SfBufferAttr_HipcMapTransferAllowsNonDevice) mode = HipcBufferMode_NonDevice;
 
         if (is_in && is_out)
             cmifRequestInOutBuffer(req, (void*)buf->ptr, buf->size, mode);
@@ -322,15 +292,11 @@ NX_CONSTEXPR void _serviceRequestProcessBuffer(CmifRequest* req, const SfBuffer*
     }
 }
 
-NX_INLINE void* serviceMakeRequest(
-    Service* s, u32 request_id, u32 context, u32 data_size, bool send_pid,
-    const SfBufferAttrs buffer_attrs, const SfBuffer* buffers,
-    u32 num_objects, const Service* const* objects,
-    u32 num_handles, const Handle* handles
-) {
+NX_INLINE void* serviceMakeRequest(Service* s, u32 request_id, u32 context, u32 data_size, bool send_pid,
+                                   const SfBufferAttrs buffer_attrs, const SfBuffer* buffers, u32 num_objects,
+                                   const Service* const* objects, u32 num_handles, const Handle* handles) {
 #if defined(NX_SERVICE_ASSUME_NON_DOMAIN)
-    if (s->object_id)
-        __builtin_unreachable();
+    if (s->object_id) __builtin_unreachable();
 #endif
 
     CmifRequestFormat fmt = {};
@@ -354,12 +320,10 @@ NX_INLINE void* serviceMakeRequest(
 
     CmifRequest req = cmifMakeRequest(armGetTls(), fmt);
 
-    if (s->object_id) // TODO: Check behavior of input objects in non-domain sessions
-        for (u32 i = 0; i < num_objects; i ++)
-            cmifRequestObject(&req, objects[i]->object_id);
+    if (s->object_id)  // TODO: Check behavior of input objects in non-domain sessions
+        for (u32 i = 0; i < num_objects; i++) cmifRequestObject(&req, objects[i]->object_id);
 
-    for (u32 i = 0; i < num_handles; i ++)
-        cmifRequestHandle(&req, handles[i]);
+    for (u32 i = 0; i < num_handles; i++) cmifRequestHandle(&req, handles[i]);
 
     _serviceRequestProcessBuffer(&req, &buffers[0], buffer_attrs.attr0);
     _serviceRequestProcessBuffer(&req, &buffers[1], buffer_attrs.attr1);
@@ -373,8 +337,7 @@ NX_INLINE void* serviceMakeRequest(
     return req.data;
 }
 
-NX_CONSTEXPR void _serviceResponseGetHandle(CmifResponse* res, SfOutHandleAttr type, Handle* out)
-{
+NX_CONSTEXPR void _serviceResponseGetHandle(CmifResponse* res, SfOutHandleAttr type, Handle* out) {
     switch (type) {
         default:
         case SfOutHandleAttr_None:
@@ -388,29 +351,24 @@ NX_CONSTEXPR void _serviceResponseGetHandle(CmifResponse* res, SfOutHandleAttr t
     }
 }
 
-NX_INLINE Result serviceParseResponse(
-    Service* s, u32 out_size, void** out_data,
-    u32 num_out_objects, Service* out_objects,
-    const SfOutHandleAttrs out_handle_attrs, Handle* out_handles
-) {
+NX_INLINE Result serviceParseResponse(Service* s, u32 out_size, void** out_data, u32 num_out_objects,
+                                      Service* out_objects, const SfOutHandleAttrs out_handle_attrs,
+                                      Handle* out_handles) {
 #if defined(NX_SERVICE_ASSUME_NON_DOMAIN)
-    if (s->object_id)
-        __builtin_unreachable();
+    if (s->object_id) __builtin_unreachable();
 #endif
 
     CmifResponse res = {};
     bool is_domain = s->object_id != 0;
     Result rc = cmifParseResponse(&res, armGetTls(), is_domain, out_size);
-    if (R_FAILED(rc))
-        return rc;
+    if (R_FAILED(rc)) return rc;
 
-    if (out_size)
-        *out_data = res.data;
+    if (out_size) *out_data = res.data;
 
-    for (u32 i = 0; i < num_out_objects; i ++) {
+    for (u32 i = 0; i < num_out_objects; i++) {
         if (is_domain)
             serviceCreateDomainSubservice(&out_objects[i], s, cmifResponseGetObject(&res));
-        else // Output objects are marshalled as move handles at the beginning of the list.
+        else  // Output objects are marshalled as move handles at the beginning of the list.
             serviceCreateNonDomainSubservice(&out_objects[i], s, cmifResponseGetMoveHandle(&res));
     }
 
@@ -426,48 +384,37 @@ NX_INLINE Result serviceParseResponse(
     return 0;
 }
 
-NX_INLINE Result serviceDispatchImpl(
-    Service* s, u32 request_id,
-    const void* in_data, u32 in_data_size,
-    void* out_data, u32 out_data_size,
-    SfDispatchParams disp
-)
-{
+NX_INLINE Result serviceDispatchImpl(Service* s, u32 request_id, const void* in_data, u32 in_data_size, void* out_data,
+                                     u32 out_data_size, SfDispatchParams disp) {
     // Make a copy of the service struct, so that the compiler can assume that it won't be modified by function calls.
     Service srv = *s;
 
-    void* in = serviceMakeRequest(&srv, request_id, disp.context,
-        in_data_size, disp.in_send_pid,
-        disp.buffer_attrs, disp.buffers,
-        disp.in_num_objects, disp.in_objects,
-        disp.in_num_handles, disp.in_handles);
+    void* in =
+        serviceMakeRequest(&srv, request_id, disp.context, in_data_size, disp.in_send_pid, disp.buffer_attrs,
+                           disp.buffers, disp.in_num_objects, disp.in_objects, disp.in_num_handles, disp.in_handles);
 
-    if (in_data_size)
-        __builtin_memcpy(in, in_data, in_data_size);
+    if (in_data_size) __builtin_memcpy(in, in_data, in_data_size);
 
     Result rc = svcSendSyncRequest(disp.target_session == INVALID_HANDLE ? s->session : disp.target_session);
     if (R_SUCCEEDED(rc)) {
         void* out = NULL;
-        rc = serviceParseResponse(&srv,
-            out_data_size, &out,
-            disp.out_num_objects, disp.out_objects,
-            disp.out_handle_attrs, disp.out_handles);
+        rc = serviceParseResponse(&srv, out_data_size, &out, disp.out_num_objects, disp.out_objects,
+                                  disp.out_handle_attrs, disp.out_handles);
 
-        if (R_SUCCEEDED(rc) && out_data && out_data_size)
-            __builtin_memcpy(out_data, out, out_data_size);
+        if (R_SUCCEEDED(rc) && out_data && out_data_size) __builtin_memcpy(out_data, out, out_data_size);
     }
 
     return rc;
 }
 
-#define serviceDispatch(_s,_rid,...) \
-    serviceDispatchImpl((_s),(_rid),NULL,0,NULL,0,(SfDispatchParams){ __VA_ARGS__ })
+#define serviceDispatch(_s, _rid, ...) \
+    serviceDispatchImpl((_s), (_rid), NULL, 0, NULL, 0, (SfDispatchParams){__VA_ARGS__})
 
-#define serviceDispatchIn(_s,_rid,_in,...) \
-    serviceDispatchImpl((_s),(_rid),&(_in),sizeof(_in),NULL,0,(SfDispatchParams){ __VA_ARGS__ })
+#define serviceDispatchIn(_s, _rid, _in, ...) \
+    serviceDispatchImpl((_s), (_rid), &(_in), sizeof(_in), NULL, 0, (SfDispatchParams){__VA_ARGS__})
 
-#define serviceDispatchOut(_s,_rid,_out,...) \
-    serviceDispatchImpl((_s),(_rid),NULL,0,&(_out),sizeof(_out),(SfDispatchParams){ __VA_ARGS__ })
+#define serviceDispatchOut(_s, _rid, _out, ...) \
+    serviceDispatchImpl((_s), (_rid), NULL, 0, &(_out), sizeof(_out), (SfDispatchParams){__VA_ARGS__})
 
-#define serviceDispatchInOut(_s,_rid,_in,_out,...) \
-    serviceDispatchImpl((_s),(_rid),&(_in),sizeof(_in),&(_out),sizeof(_out),(SfDispatchParams){ __VA_ARGS__ })
+#define serviceDispatchInOut(_s, _rid, _in, _out, ...) \
+    serviceDispatchImpl((_s), (_rid), &(_in), sizeof(_in), &(_out), sizeof(_out), (SfDispatchParams){__VA_ARGS__})

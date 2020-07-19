@@ -8,37 +8,35 @@
 #include "account.h"
 #include "os.hpp"
 
-namespace nn
-{
-    namespace friends
-    {
-        typedef char Url[0xA0];
-        
-        class AsyncContext;
-        class Profile;
+namespace nn {
+namespace friends {
+    typedef char Url[0xA0];
 
-        void Initialize();
-        Result GetProfileList(nn::friends::AsyncContext* context, nn::friends::Profile* profiles, nn::account::Uid const &userID, nn::account::NetworkServiceAccountId const *accountIDs, s32 numAccounts);
+    class AsyncContext;
+    class Profile;
 
-        class Profile
-        {
-        public:
-            Profile();
+    void Initialize();
+    Result GetProfileList(nn::friends::AsyncContext* context, nn::friends::Profile* profiles,
+                          nn::account::Uid const& userID, nn::account::NetworkServiceAccountId const* accountIDs,
+                          s32 numAccounts);
 
-            nn::account::NetworkServiceAccountId GetAccountId() const;
-            nn::account::Nickname& GetNickname() const;
-            bool IsValid() const;
-            Result GetProfileImageUrl(nn::friends::Url *, s32);
-        };
+    class Profile {
+       public:
+        Profile();
 
-        class AsyncContext
-        {
-        public:
-            AsyncContext();
-            ~AsyncContext();
-
-            Result GetSystemEvent(nn::os::SystemEvent *);
-            Result GetResult() const;
-        };
+        nn::account::NetworkServiceAccountId GetAccountId() const;
+        nn::account::Nickname& GetNickname() const;
+        bool IsValid() const;
+        Result GetProfileImageUrl(nn::friends::Url*, s32);
     };
-};
+
+    class AsyncContext {
+       public:
+        AsyncContext();
+        ~AsyncContext();
+
+        Result GetSystemEvent(nn::os::SystemEvent*);
+        Result GetResult() const;
+    };
+};  // namespace friends
+};  // namespace nn

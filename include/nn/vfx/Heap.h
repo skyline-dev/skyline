@@ -7,14 +7,11 @@
 
 #include "types.h"
 
-namespace nn
-{
-    namespace vfx
-    {
-        class Heap
-        {
-        public:
-            virtual ~Heap();
-        };
+namespace nn {
+namespace vfx {
+    class Heap {
+       public:
+        virtual ~Heap();
     };
-};
+};  // namespace vfx
+};  // namespace nn

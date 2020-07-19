@@ -7,16 +7,15 @@
 
 #include "types.h"
 
-namespace nn
-{
-    typedef u64 ApplicationId;
+namespace nn {
+typedef u64 ApplicationId;
 };
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-int main(int argc, char **argv);
+int main(int argc, char** argv);
 void nninitStartup();
 
 void _init();

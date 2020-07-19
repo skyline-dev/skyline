@@ -5,8 +5,8 @@
  * @copyright libnx Authors
  */
 #pragma once
-#include "../kernel/mutex.h"
 #include "../kernel/condvar.h"
+#include "../kernel/mutex.h"
 
 /// Read/write lock structure.
 typedef struct {

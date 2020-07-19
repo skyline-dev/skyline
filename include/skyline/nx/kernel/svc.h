@@ -4,8 +4,8 @@
  * @copyright libnx Authors
  */
 #pragma once
-#include "types.h"
 #include "../arm/thread_context.h"
+#include "types.h"
 
 /// Pseudo handle for the current process.
 #define CUR_PROCESS_HANDLE 0xFFFF8001
@@ -18,191 +18,197 @@
 
 /// Memory type enumeration (lower 8 bits of \ref MemoryState)
 typedef enum {
-    MemType_Unmapped=0x00,            ///< Unmapped memory.
-    MemType_Io=0x01,                  ///< Mapped by kernel capability parsing in \ref svcCreateProcess.
-    MemType_Normal=0x02,              ///< Mapped by kernel capability parsing in \ref svcCreateProcess.
-    MemType_CodeStatic=0x03,          ///< Mapped during \ref svcCreateProcess.
-    MemType_CodeMutable=0x04,         ///< Transition from MemType_CodeStatic performed by \ref svcSetProcessMemoryPermission.
-    MemType_Heap=0x05,                ///< Mapped using \ref svcSetHeapSize.
-    MemType_SharedMem=0x06,           ///< Mapped using \ref svcMapSharedMemory.
-    MemType_WeirdMappedMem=0x07,      ///< Mapped using \ref svcMapMemory.
-    MemType_ModuleCodeStatic=0x08,    ///< Mapped using \ref svcMapProcessCodeMemory.
-    MemType_ModuleCodeMutable=0x09,   ///< Transition from \ref MemType_ModuleCodeStatic performed by \ref svcSetProcessMemoryPermission.
-    MemType_IpcBuffer0=0x0A,          ///< IPC buffers with descriptor flags=0.
-    MemType_MappedMemory=0x0B,        ///< Mapped using \ref svcMapMemory.
-    MemType_ThreadLocal=0x0C,         ///< Mapped during \ref svcCreateThread.
-    MemType_TransferMemIsolated=0x0D, ///< Mapped using \ref svcMapTransferMemory when the owning process has perm=0.
-    MemType_TransferMem=0x0E,         ///< Mapped using \ref svcMapTransferMemory when the owning process has perm!=0.
-    MemType_ProcessMem=0x0F,          ///< Mapped using \ref svcMapProcessMemory.
-    MemType_Reserved=0x10,            ///< Reserved.
-    MemType_IpcBuffer1=0x11,          ///< IPC buffers with descriptor flags=1.
-    MemType_IpcBuffer3=0x12,          ///< IPC buffers with descriptor flags=3.
-    MemType_KernelStack=0x13,         ///< Mapped in kernel during \ref svcCreateThread.
-    MemType_CodeReadOnly=0x14,        ///< Mapped in kernel during \ref svcControlCodeMemory.
-    MemType_CodeWritable=0x15,        ///< Mapped in kernel during \ref svcControlCodeMemory.
+    MemType_Unmapped = 0x00,    ///< Unmapped memory.
+    MemType_Io = 0x01,          ///< Mapped by kernel capability parsing in \ref svcCreateProcess.
+    MemType_Normal = 0x02,      ///< Mapped by kernel capability parsing in \ref svcCreateProcess.
+    MemType_CodeStatic = 0x03,  ///< Mapped during \ref svcCreateProcess.
+    MemType_CodeMutable =
+        0x04,                  ///< Transition from MemType_CodeStatic performed by \ref svcSetProcessMemoryPermission.
+    MemType_Heap = 0x05,       ///< Mapped using \ref svcSetHeapSize.
+    MemType_SharedMem = 0x06,  ///< Mapped using \ref svcMapSharedMemory.
+    MemType_WeirdMappedMem = 0x07,    ///< Mapped using \ref svcMapMemory.
+    MemType_ModuleCodeStatic = 0x08,  ///< Mapped using \ref svcMapProcessCodeMemory.
+    MemType_ModuleCodeMutable =
+        0x09,  ///< Transition from \ref MemType_ModuleCodeStatic performed by \ref svcSetProcessMemoryPermission.
+    MemType_IpcBuffer0 = 0x0A,    ///< IPC buffers with descriptor flags=0.
+    MemType_MappedMemory = 0x0B,  ///< Mapped using \ref svcMapMemory.
+    MemType_ThreadLocal = 0x0C,   ///< Mapped during \ref svcCreateThread.
+    MemType_TransferMemIsolated =
+        0x0D,                     ///< Mapped using \ref svcMapTransferMemory when the owning process has perm=0.
+    MemType_TransferMem = 0x0E,   ///< Mapped using \ref svcMapTransferMemory when the owning process has perm!=0.
+    MemType_ProcessMem = 0x0F,    ///< Mapped using \ref svcMapProcessMemory.
+    MemType_Reserved = 0x10,      ///< Reserved.
+    MemType_IpcBuffer1 = 0x11,    ///< IPC buffers with descriptor flags=1.
+    MemType_IpcBuffer3 = 0x12,    ///< IPC buffers with descriptor flags=3.
+    MemType_KernelStack = 0x13,   ///< Mapped in kernel during \ref svcCreateThread.
+    MemType_CodeReadOnly = 0x14,  ///< Mapped in kernel during \ref svcControlCodeMemory.
+    MemType_CodeWritable = 0x15,  ///< Mapped in kernel during \ref svcControlCodeMemory.
 } MemoryType;
 
 /// Memory state bitmasks.
 typedef enum {
-    MemState_Type=0xFF,                             ///< Type field (see \ref MemoryType).
-    MemState_PermChangeAllowed=BIT(8),              ///< Permission change allowed.
-    MemState_ForceRwByDebugSyscalls=BIT(9),         ///< Force read/writable by debug syscalls.
-    MemState_IpcSendAllowed_Type0=BIT(10),          ///< IPC type 0 send allowed.
-    MemState_IpcSendAllowed_Type3=BIT(11),          ///< IPC type 3 send allowed.
-    MemState_IpcSendAllowed_Type1=BIT(12),          ///< IPC type 1 send allowed.
-    MemState_ProcessPermChangeAllowed=BIT(14),      ///< Process permission change allowed.
-    MemState_MapAllowed=BIT(15),                    ///< Map allowed.
-    MemState_UnmapProcessCodeMemAllowed=BIT(16),    ///< Unmap process code memory allowed.
-    MemState_TransferMemAllowed=BIT(17),            ///< Transfer memory allowed.
-    MemState_QueryPAddrAllowed=BIT(18),             ///< Query physical address allowed.
-    MemState_MapDeviceAllowed=BIT(19),              ///< Map device allowed (\ref svcMapDeviceAddressSpace and \ref svcMapDeviceAddressSpaceByForce).
-    MemState_MapDeviceAlignedAllowed=BIT(20),       ///< Map device aligned allowed.
-    MemState_IpcBufferAllowed=BIT(21),              ///< IPC buffer allowed.
-    MemState_IsPoolAllocated=BIT(22),               ///< Is pool allocated.
-    MemState_IsRefCounted=MemState_IsPoolAllocated, ///< Alias for \ref MemState_IsPoolAllocated.
-    MemState_MapProcessAllowed=BIT(23),             ///< Map process allowed.
-    MemState_AttrChangeAllowed=BIT(24),             ///< Attribute change allowed.
-    MemState_CodeMemAllowed=BIT(25),                ///< Code memory allowed.
+    MemState_Type = 0xFF,                           ///< Type field (see \ref MemoryType).
+    MemState_PermChangeAllowed = BIT(8),            ///< Permission change allowed.
+    MemState_ForceRwByDebugSyscalls = BIT(9),       ///< Force read/writable by debug syscalls.
+    MemState_IpcSendAllowed_Type0 = BIT(10),        ///< IPC type 0 send allowed.
+    MemState_IpcSendAllowed_Type3 = BIT(11),        ///< IPC type 3 send allowed.
+    MemState_IpcSendAllowed_Type1 = BIT(12),        ///< IPC type 1 send allowed.
+    MemState_ProcessPermChangeAllowed = BIT(14),    ///< Process permission change allowed.
+    MemState_MapAllowed = BIT(15),                  ///< Map allowed.
+    MemState_UnmapProcessCodeMemAllowed = BIT(16),  ///< Unmap process code memory allowed.
+    MemState_TransferMemAllowed = BIT(17),          ///< Transfer memory allowed.
+    MemState_QueryPAddrAllowed = BIT(18),           ///< Query physical address allowed.
+    MemState_MapDeviceAllowed =
+        BIT(19),  ///< Map device allowed (\ref svcMapDeviceAddressSpace and \ref svcMapDeviceAddressSpaceByForce).
+    MemState_MapDeviceAlignedAllowed = BIT(20),        ///< Map device aligned allowed.
+    MemState_IpcBufferAllowed = BIT(21),               ///< IPC buffer allowed.
+    MemState_IsPoolAllocated = BIT(22),                ///< Is pool allocated.
+    MemState_IsRefCounted = MemState_IsPoolAllocated,  ///< Alias for \ref MemState_IsPoolAllocated.
+    MemState_MapProcessAllowed = BIT(23),              ///< Map process allowed.
+    MemState_AttrChangeAllowed = BIT(24),              ///< Attribute change allowed.
+    MemState_CodeMemAllowed = BIT(25),                 ///< Code memory allowed.
 } MemoryState;
 
 /// Memory attribute bitmasks.
 typedef enum {
-    MemAttr_IsBorrowed=BIT(0),     ///< Is borrowed memory.
-    MemAttr_IsIpcMapped=BIT(1),    ///< Is IPC mapped (when IpcRefCount > 0).
-    MemAttr_IsDeviceMapped=BIT(2), ///< Is device mapped (when DeviceRefCount > 0).
-    MemAttr_IsUncached=BIT(3),     ///< Is uncached.
+    MemAttr_IsBorrowed = BIT(0),      ///< Is borrowed memory.
+    MemAttr_IsIpcMapped = BIT(1),     ///< Is IPC mapped (when IpcRefCount > 0).
+    MemAttr_IsDeviceMapped = BIT(2),  ///< Is device mapped (when DeviceRefCount > 0).
+    MemAttr_IsUncached = BIT(3),      ///< Is uncached.
 } MemoryAttribute;
 
 /// Memory permission bitmasks.
 typedef enum {
-    Perm_None     = 0,               ///< No permissions.
-    Perm_R        = BIT(0),          ///< Read permission.
-    Perm_W        = BIT(1),          ///< Write permission.
-    Perm_X        = BIT(2),          ///< Execute permission.
-    Perm_Rw       = Perm_R | Perm_W, ///< Read/write permissions.
-    Perm_Rx       = Perm_R | Perm_X, ///< Read/execute permissions.
-    Perm_DontCare = BIT(28),         ///< Don't care
+    Perm_None = 0,              ///< No permissions.
+    Perm_R = BIT(0),            ///< Read permission.
+    Perm_W = BIT(1),            ///< Write permission.
+    Perm_X = BIT(2),            ///< Execute permission.
+    Perm_Rw = Perm_R | Perm_W,  ///< Read/write permissions.
+    Perm_Rx = Perm_R | Perm_X,  ///< Read/execute permissions.
+    Perm_DontCare = BIT(28),    ///< Don't care
 } Permission;
 
 /// Memory information structure.
 typedef struct {
-    u64 addr;            ///< Base address.
-    u64 size;            ///< Size.
-    u32 type;            ///< Memory type (see lower 8 bits of \ref MemoryState).
-    u32 attr;            ///< Memory attributes (see \ref MemoryAttribute).
-    u32 perm;            ///< Memory permissions (see \ref Permission).
-    u32 device_refcount; ///< Device reference count.
-    u32 ipc_refcount;    ///< IPC reference count.
-    u32 padding;         ///< Padding.
+    u64 addr;             ///< Base address.
+    u64 size;             ///< Size.
+    u32 type;             ///< Memory type (see lower 8 bits of \ref MemoryState).
+    u32 attr;             ///< Memory attributes (see \ref MemoryAttribute).
+    u32 perm;             ///< Memory permissions (see \ref Permission).
+    u32 device_refcount;  ///< Device reference count.
+    u32 ipc_refcount;     ///< IPC reference count.
+    u32 padding;          ///< Padding.
 } MemoryInfo;
 
 /// Secure monitor arguments.
 typedef struct {
-    u64 X[8]; ///< Values of X0 through X7.
+    u64 X[8];  ///< Values of X0 through X7.
 } PACKED SecmonArgs;
 
 /// Code memory mapping operations
 typedef enum {
-    CodeMapOperation_MapOwner=0,   ///< Map owner.
-    CodeMapOperation_MapSlave=1,   ///< Map slave.
-    CodeMapOperation_UnmapOwner=2, ///< Unmap owner.
-    CodeMapOperation_UnmapSlave=3, ///< Unmap slave.
+    CodeMapOperation_MapOwner = 0,    ///< Map owner.
+    CodeMapOperation_MapSlave = 1,    ///< Map slave.
+    CodeMapOperation_UnmapOwner = 2,  ///< Unmap owner.
+    CodeMapOperation_UnmapSlave = 3,  ///< Unmap slave.
 } CodeMapOperation;
 
 /// Limitable Resources.
 typedef enum {
-    LimitableResource_Memory=0,           ///<How much memory can a process map.
-    LimitableResource_Threads=1,          ///<How many threads can a process spawn.
-    LimitableResource_Events=2,           ///<How many events can a process have.
-    LimitableResource_TransferMemories=3, ///<How many transfer memories can a process make.
-    LimitableResource_Sessions=4,         ///<How many sessions can a process own.
+    LimitableResource_Memory = 0,            ///< How much memory can a process map.
+    LimitableResource_Threads = 1,           ///< How many threads can a process spawn.
+    LimitableResource_Events = 2,            ///< How many events can a process have.
+    LimitableResource_TransferMemories = 3,  ///< How many transfer memories can a process make.
+    LimitableResource_Sessions = 4,          ///< How many sessions can a process own.
 } LimitableResource;
 
 /// Process Information.
 typedef enum {
-    ProcessInfoType_ProcessState=0,       ///<What state is a process in.
+    ProcessInfoType_ProcessState = 0,  ///< What state is a process in.
 } ProcessInfoType;
 
 /// Process States.
 typedef enum {
-    ProcessState_Created=0,             ///<Newly-created process, not yet started.
-    ProcessState_CreatedAttached=1,     ///<Newly-created process, not yet started but attached to debugger.
-    ProcessState_Running=2,             ///<Process that is running normally (and detached from any debugger).
-    ProcessState_Crashed=3,             ///<Process that has just crashed.
-    ProcessState_RunningAttached=4,     ///<Process that is running normally, attached to a debugger.
-    ProcessState_Exiting=5,             ///<Process has begun exiting.
-    ProcessState_Exited=6,              ///<Process has finished exiting.
-    ProcessState_DebugSuspended=7,      ///<Process execution suspended by debugger.
+    ProcessState_Created = 0,          ///< Newly-created process, not yet started.
+    ProcessState_CreatedAttached = 1,  ///< Newly-created process, not yet started but attached to debugger.
+    ProcessState_Running = 2,          ///< Process that is running normally (and detached from any debugger).
+    ProcessState_Crashed = 3,          ///< Process that has just crashed.
+    ProcessState_RunningAttached = 4,  ///< Process that is running normally, attached to a debugger.
+    ProcessState_Exiting = 5,          ///< Process has begun exiting.
+    ProcessState_Exited = 6,           ///< Process has finished exiting.
+    ProcessState_DebugSuspended = 7,   ///< Process execution suspended by debugger.
 } ProcessState;
 
 /// Debug Thread Parameters.
 typedef enum {
-    DebugThreadParam_ActualPriority=0,
-    DebugThreadParam_State=1,
-    DebugThreadParam_IdealCore=2,
-    DebugThreadParam_CurrentCore=3,
-    DebugThreadParam_CoreMask=4,
+    DebugThreadParam_ActualPriority = 0,
+    DebugThreadParam_State = 1,
+    DebugThreadParam_IdealCore = 2,
+    DebugThreadParam_CurrentCore = 3,
+    DebugThreadParam_CoreMask = 4,
 } DebugThreadParam;
 
 /// GetInfo IDs.
 typedef enum {
-    InfoType_CoreMask                       = 0,  ///< Bitmask of allowed Core IDs.
-    InfoType_PriorityMask                   = 1,  ///< Bitmask of allowed Thread Priorities.
-    InfoType_AliasRegionAddress             = 2,  ///< Base of the Alias memory region.
-    InfoType_AliasRegionSize                = 3,  ///< Size of the Alias memory region.
-    InfoType_HeapRegionAddress              = 4,  ///< Base of the Heap memory region.
-    InfoType_HeapRegionSize                 = 5,  ///< Size of the Heap memory region.
-    InfoType_TotalMemorySize                = 6,  ///< Total amount of memory available for process.
-    InfoType_UsedMemorySize                 = 7,  ///< Amount of memory currently used by process.
-    InfoType_DebuggerAttached               = 8,  ///< Whether current process is being debugged.
-    InfoType_ResourceLimit                  = 9,  ///< Current process's resource limit handle.
-    InfoType_IdleTickCount                  = 10, ///< Number of idle ticks on CPU.
-    InfoType_RandomEntropy                  = 11, ///< [2.0.0+] Random entropy for current process.
-    InfoType_AslrRegionAddress              = 12, ///< [2.0.0+] Base of the process's address space.
-    InfoType_AslrRegionSize                 = 13, ///< [2.0.0+] Size of the process's address space.
-    InfoType_StackRegionAddress             = 14, ///< [2.0.0+] Base of the Stack memory region.
-    InfoType_StackRegionSize                = 15, ///< [2.0.0+] Size of the Stack memory region.
-    InfoType_SystemResourceSizeTotal        = 16, ///< [3.0.0+] Total memory allocated for process memory management.
-    InfoType_SystemResourceSizeUsed         = 17, ///< [3.0.0+] Amount of memory currently used by process memory management.
-    InfoType_ProgramId                      = 18, ///< [3.0.0+] Program ID for the process.
-    InfoType_InitialProcessIdRange          = 19, ///< [4.0.0-4.1.0] Min/max initial process IDs.
-    InfoType_UserExceptionContextAddress    = 20, ///< [5.0.0+] Address of the process's exception context (for break).
-    InfoType_TotalNonSystemMemorySize       = 21, ///< [6.0.0+] Total amount of memory available for process, excluding that for process memory management.
-    InfoType_UsedNonSystemMemorySize        = 22, ///< [6.0.0+] Amount of memory used by process, excluding that for process memory management.
-    InfoType_IsApplication                  = 23, ///< [9.0.0+] Whether the specified process is an Application.
+    InfoType_CoreMask = 0,                  ///< Bitmask of allowed Core IDs.
+    InfoType_PriorityMask = 1,              ///< Bitmask of allowed Thread Priorities.
+    InfoType_AliasRegionAddress = 2,        ///< Base of the Alias memory region.
+    InfoType_AliasRegionSize = 3,           ///< Size of the Alias memory region.
+    InfoType_HeapRegionAddress = 4,         ///< Base of the Heap memory region.
+    InfoType_HeapRegionSize = 5,            ///< Size of the Heap memory region.
+    InfoType_TotalMemorySize = 6,           ///< Total amount of memory available for process.
+    InfoType_UsedMemorySize = 7,            ///< Amount of memory currently used by process.
+    InfoType_DebuggerAttached = 8,          ///< Whether current process is being debugged.
+    InfoType_ResourceLimit = 9,             ///< Current process's resource limit handle.
+    InfoType_IdleTickCount = 10,            ///< Number of idle ticks on CPU.
+    InfoType_RandomEntropy = 11,            ///< [2.0.0+] Random entropy for current process.
+    InfoType_AslrRegionAddress = 12,        ///< [2.0.0+] Base of the process's address space.
+    InfoType_AslrRegionSize = 13,           ///< [2.0.0+] Size of the process's address space.
+    InfoType_StackRegionAddress = 14,       ///< [2.0.0+] Base of the Stack memory region.
+    InfoType_StackRegionSize = 15,          ///< [2.0.0+] Size of the Stack memory region.
+    InfoType_SystemResourceSizeTotal = 16,  ///< [3.0.0+] Total memory allocated for process memory management.
+    InfoType_SystemResourceSizeUsed = 17,   ///< [3.0.0+] Amount of memory currently used by process memory management.
+    InfoType_ProgramId = 18,                ///< [3.0.0+] Program ID for the process.
+    InfoType_InitialProcessIdRange = 19,    ///< [4.0.0-4.1.0] Min/max initial process IDs.
+    InfoType_UserExceptionContextAddress = 20,  ///< [5.0.0+] Address of the process's exception context (for break).
+    InfoType_TotalNonSystemMemorySize =
+        21,  ///< [6.0.0+] Total amount of memory available for process, excluding that for process memory management.
+    InfoType_UsedNonSystemMemorySize =
+        22,  ///< [6.0.0+] Amount of memory used by process, excluding that for process memory management.
+    InfoType_IsApplication = 23,  ///< [9.0.0+] Whether the specified process is an Application.
 
-    InfoType_ThreadTickCount                = 0xF0000002, ///< Number of ticks spent on thread.
+    InfoType_ThreadTickCount = 0xF0000002,  ///< Number of ticks spent on thread.
 } InfoType;
 
 /// GetSystemInfo IDs.
 typedef enum {
-    SystemInfoType_TotalPhysicalMemorySize  = 0, ///< Total amount of DRAM available to system.
-    SystemInfoType_UsedPhysicalMemorySize   = 1, ///< Current amount of DRAM used by system.
-    SystemInfoType_InitialProcessIdRange    = 2, ///< Min/max initial process IDs.
+    SystemInfoType_TotalPhysicalMemorySize = 0,  ///< Total amount of DRAM available to system.
+    SystemInfoType_UsedPhysicalMemorySize = 1,   ///< Current amount of DRAM used by system.
+    SystemInfoType_InitialProcessIdRange = 2,    ///< Min/max initial process IDs.
 } SystemInfoType;
 
 /// GetInfo Idle/Thread Tick Count Sub IDs.
 typedef enum {
-    TickCountInfo_Core0 = 0,       ///< Tick count on core 0.
-    TickCountInfo_Core1 = 1,       ///< Tick count on core 1.
-    TickCountInfo_Core2 = 2,       ///< Tick count on core 2.
-    TickCountInfo_Core3 = 3,       ///< Tick count on core 3.
+    TickCountInfo_Core0 = 0,  ///< Tick count on core 0.
+    TickCountInfo_Core1 = 1,  ///< Tick count on core 1.
+    TickCountInfo_Core2 = 2,  ///< Tick count on core 2.
+    TickCountInfo_Core3 = 3,  ///< Tick count on core 3.
 
-    TickCountInfo_Total = UINT64_MAX, ///< Tick count on all cores.
+    TickCountInfo_Total = UINT64_MAX,  ///< Tick count on all cores.
 } TickCountInfo;
 
 /// GetInfo InitialProcessIdRange Sub IDs.
 typedef enum {
-    InitialProcessIdRangeInfo_Minimum = 0, ///< Lowest initial process ID.
-    InitialProcessIdRangeInfo_Maximum = 1, ///< Highest initial process ID.
+    InitialProcessIdRangeInfo_Minimum = 0,  ///< Lowest initial process ID.
+    InitialProcessIdRangeInfo_Maximum = 1,  ///< Highest initial process ID.
 } InitialProcessIdRangeInfo;
 
 /// GetSystemInfo PhysicalMemory Sub IDs.
 typedef enum {
-    PhysicalMemoryInfo_Application  = 0, ///< Memory allocated for application usage.
-    PhysicalMemoryInfo_Applet       = 1, ///< Memory allocated for applet usage.
-    PhysicalMemoryInfo_System       = 2, ///< Memory allocated for system usage.
-    PhysicalMemoryInfo_SystemUnsafe = 3, ///< Memory allocated for unsafe system usage (accessible to devices).
+    PhysicalMemoryInfo_Application = 0,   ///< Memory allocated for application usage.
+    PhysicalMemoryInfo_Applet = 1,        ///< Memory allocated for applet usage.
+    PhysicalMemoryInfo_System = 2,        ///< Memory allocated for system usage.
+    PhysicalMemoryInfo_SystemUnsafe = 3,  ///< Memory allocated for unsafe system usage (accessible to devices).
 } PhysicalMemoryInfo;
 
 ///@name Memory management
@@ -236,14 +242,16 @@ Result svcSetMemoryPermission(void* addr, u64 size, u32 perm);
  * @param[in] val0 State0
  * @param[in] val1 State1
  * @return Result code.
- * @remark See <a href="https://switchbrew.org/wiki/SVC#svcSetMemoryAttribute">switchbrew.org Wiki</a> for more details.
+ * @remark See <a href="https://switchbrew.org/wiki/SVC#svcSetMemoryAttribute">switchbrew.org Wiki</a> for more
+ * details.
  * @note Syscall number 0x02.
  */
 Result svcSetMemoryAttribute(void* addr, u64 size, u32 val0, u32 val1);
 
 /**
  * @brief Maps a memory range into a different range. Mainly used for adding guard pages around stack.
- * Source range gets reprotected to Perm_None (it can no longer be accessed), and \ref MemAttr_IsBorrowed is set in the source \ref MemoryAttribute.
+ * Source range gets reprotected to Perm_None (it can no longer be accessed), and \ref MemAttr_IsBorrowed is set in the
+ * source \ref MemoryAttribute.
  * @param[in] dst_addr Destination address.
  * @param[in] src_addr Source address.
  * @param[in] size Size of the range.
@@ -263,14 +271,15 @@ Result svcMapMemory(void* dst_addr, void* src_addr, u64 size);
 Result svcUnmapMemory(void* dst_addr, void* src_addr, u64 size);
 
 /**
- * @brief Query information about an address. Will always fetch the lowest page-aligned mapping that contains the provided address.
+ * @brief Query information about an address. Will always fetch the lowest page-aligned mapping that contains the
+ * provided address.
  * @param[out] meminfo_ptr \ref MemoryInfo structure which will be filled in.
  * @param[out] pageinfo Page information which will be filled in.
  * @param[in] addr Address to query.
  * @return Result code.
  * @note Syscall number 0x06.
  */
-Result svcQueryMemory(MemoryInfo* meminfo_ptr, u32 *pageinfo, u64 addr);
+Result svcQueryMemory(MemoryInfo* meminfo_ptr, u32* pageinfo, u64 addr);
 
 ///@}
 
@@ -427,7 +436,8 @@ Result svcResetSignal(Handle handle);
  * @return Result code.
  * @note Syscall number 0x18.
  * @note \p handleCount must not be greater than \ref MAX_WAIT_OBJECTS. This is a Horizon kernel limitation.
- * @note This is the raw syscall, which can be cancelled by \ref svcCancelSynchronization or other means. \ref waitHandles or \ref waitMultiHandle should normally be used instead.
+ * @note This is the raw syscall, which can be cancelled by \ref svcCancelSynchronization or other means. \ref
+ * waitHandles or \ref waitMultiHandle should normally be used instead.
  */
 Result svcWaitSynchronization(s32* index, const Handle* handles, s32 handleCount, u64 timeout);
 
@@ -435,7 +445,8 @@ Result svcWaitSynchronization(s32* index, const Handle* handles, s32 handleCount
  * @brief Waits on a single synchronization object, optionally with a timeout.
  * @return Result code.
  * @note Wrapper for \ref svcWaitSynchronization.
- * @note This is the raw syscall, which can be cancelled by \ref svcCancelSynchronization or other means. \ref waitSingleHandle should normally be used instead.
+ * @note This is the raw syscall, which can be cancelled by \ref svcCancelSynchronization or other means. \ref
+ * waitSingleHandle should normally be used instead.
  */
 static inline Result svcWaitSynchronizationSingle(Handle handle, u64 timeout) {
     s32 tmp;
@@ -533,14 +544,14 @@ Result svcSendAsyncRequestWithUserBuffer(Handle* handle, void* usrBuffer, u64 si
  * @return Result code.
  * @note Syscall number 0x24.
  */
-Result svcGetProcessId(u64 *processID, Handle handle);
+Result svcGetProcessId(u64* processID, Handle handle);
 
 /**
  * @brief Gets the TID associated with a process.
  * @return Result code.
  * @note Syscall number 0x25.
  */
-Result svcGetThreadId(u64 *threadID, Handle handle);
+Result svcGetThreadId(u64* threadID, Handle handle);
 
 ///@}
 
@@ -569,7 +580,7 @@ Result svcBreak(u32 breakReason, u64 inval1, u64 inval2);
  * @return Result code.
  * @note Syscall number 0x27.
  */
-Result svcOutputDebugString(const char *str, u64 size);
+Result svcOutputDebugString(const char* str, u64 size);
 
 ///@}
 
@@ -587,10 +598,12 @@ void NORETURN svcReturnFromException(Result res);
  * @brief Retrieves information about the system, or a certain kernel object.
  * @param[out] out Variable to which store the information.
  * @param[in] id0 First ID of the property to retrieve.
- * @param[in] handle Handle of the object to retrieve information from, or \ref INVALID_HANDLE to retrieve information about the system.
+ * @param[in] handle Handle of the object to retrieve information from, or \ref INVALID_HANDLE to retrieve information
+ * about the system.
  * @param[in] id1 Second ID of the property to retrieve.
  * @return Result code.
- * @remark The full list of property IDs can be found on the <a href="https://switchbrew.org/wiki/SVC#svcGetInfo">switchbrew.org wiki</a>.
+ * @remark The full list of property IDs can be found on the <a
+ * href="https://switchbrew.org/wiki/SVC#svcGetInfo">switchbrew.org wiki</a>.
  * @note Syscall number 0x29.
  */
 Result svcGetInfo(u64* out, u32 id0, Handle handle, u64 id1);
@@ -606,7 +619,7 @@ Result svcGetInfo(u64* out, u32 id0, Handle handle, u64 id1);
  * @note Syscall number 0x2C.
  * @warning This is a privileged syscall. Use \ref envIsSyscallHinted to check if it is available.
  */
-Result svcMapPhysicalMemory(void *address, u64 size);
+Result svcMapPhysicalMemory(void* address, u64 size);
 
 /**
  * @brief Undoes the effects of \ref svcMapPhysicalMemory. [3.0.0+]
@@ -614,7 +627,7 @@ Result svcMapPhysicalMemory(void *address, u64 size);
  * @note Syscall number 0x2D.
  * @warning This is a privileged syscall. Use \ref envIsSyscallHinted to check if it is available.
  */
-Result svcUnmapPhysicalMemory(void *address, u64 size);
+Result svcUnmapPhysicalMemory(void* address, u64 size);
 
 ///@}
 
@@ -627,7 +640,7 @@ Result svcUnmapPhysicalMemory(void *address, u64 size);
  * @note Syscall number 0x30.
  * @warning This is a privileged syscall. Use \ref envIsSyscallHinted to check if it is available.
  */
-Result svcGetResourceLimitLimitValue(u64 *out, Handle reslimit_h, LimitableResource which);
+Result svcGetResourceLimitLimitValue(u64* out, Handle reslimit_h, LimitableResource which);
 
 /**
  * @brief Gets the maximum value a LimitableResource can have, for a Resource Limit handle.
@@ -635,7 +648,7 @@ Result svcGetResourceLimitLimitValue(u64 *out, Handle reslimit_h, LimitableResou
  * @note Syscall number 0x31.
  * @warning This is a privileged syscall. Use \ref envIsSyscallHinted to check if it is available.
  */
-Result svcGetResourceLimitCurrentValue(u64 *out, Handle reslimit_h, LimitableResource which);
+Result svcGetResourceLimitCurrentValue(u64* out, Handle reslimit_h, LimitableResource which);
 
 ///@}
 
@@ -655,7 +668,8 @@ Result svcSetThreadActivity(Handle thread, bool paused);
  * @param[in] thread Thread handle.
  * @return Result code.
  * @note Syscall number 0x33.
- * @warning Official kernel will not dump x0..x18 if the thread is currently executing a system call, and prior to 6.0.0 doesn't dump TPIDR_EL0.
+ * @warning Official kernel will not dump x0..x18 if the thread is currently executing a system call, and prior
+ * to 6.0.0 doesn't dump TPIDR_EL0.
  */
 Result svcGetThreadContext3(ThreadContext* ctx, Handle thread);
 
@@ -670,7 +684,7 @@ Result svcGetThreadContext3(ThreadContext* ctx, Handle thread);
  * @note Syscall number 0x40.
  * @warning This is a privileged syscall. Use \ref envIsSyscallHinted to check if it is available.
  */
-Result svcCreateSession(Handle *server_handle, Handle *client_handle, u32 unk0, u64 unk1);//unk* are normally 0?
+Result svcCreateSession(Handle* server_handle, Handle* client_handle, u32 unk0, u64 unk1);  // unk* are normally 0?
 
 /**
  * @brief Accepts an IPC session.
@@ -678,7 +692,7 @@ Result svcCreateSession(Handle *server_handle, Handle *client_handle, u32 unk0, 
  * @note Syscall number 0x41.
  * @warning This is a privileged syscall. Use \ref envIsSyscallHinted to check if it is available.
  */
-Result svcAcceptSession(Handle *session_handle, Handle port_handle);
+Result svcAcceptSession(Handle* session_handle, Handle port_handle);
 
 /**
  * @brief Performs IPC input/output.
@@ -694,7 +708,8 @@ Result svcReplyAndReceive(s32* index, const Handle* handles, s32 handleCount, Ha
  * @note Syscall number 0x44.
  * @warning This is a privileged syscall. Use \ref envIsSyscallHinted to check if it is available.
  */
-Result svcReplyAndReceiveWithUserBuffer(s32* index, void* usrBuffer, u64 size, const Handle* handles, s32 handleCount, Handle replyTarget, u64 timeout);
+Result svcReplyAndReceiveWithUserBuffer(s32* index, void* usrBuffer, u64 size, const Handle* handles, s32 handleCount,
+                                        Handle replyTarget, u64 timeout);
 
 ///@}
 
@@ -720,7 +735,7 @@ Result svcCreateEvent(Handle* server_handle, Handle* client_handle);
  * @note Syscall number 0x48.
  * @warning This is a privileged syscall. Use \ref envIsSyscallHinted to check if it is available.
  */
-Result svcMapPhysicalMemoryUnsafe(void *address, u64 size);
+Result svcMapPhysicalMemoryUnsafe(void* address, u64 size);
 
 /**
  * @brief Undoes the effects of \ref svcMapPhysicalMemoryUnsafe. [5.0.0+]
@@ -728,7 +743,7 @@ Result svcMapPhysicalMemoryUnsafe(void *address, u64 size);
  * @note Syscall number 0x49.
  * @warning This is a privileged syscall. Use \ref envIsSyscallHinted to check if it is available.
  */
-Result svcUnmapPhysicalMemoryUnsafe(void *address, u64 size);
+Result svcUnmapPhysicalMemoryUnsafe(void* address, u64 size);
 
 /**
  * @brief Sets the system-wide limit for unsafe memory mappable using \ref svcMapPhysicalMemoryUnsafe. [5.0.0+]
@@ -739,7 +754,6 @@ Result svcUnmapPhysicalMemoryUnsafe(void *address, u64 size);
 Result svcSetUnsafeLimit(u64 size);
 
 ///@}
-
 
 ///@name Code memory / Just-in-time (JIT) compilation support
 ///@{
@@ -842,7 +856,7 @@ Result svcQueryIoMapping(u64* virtaddr, u64 physaddr, u64 size);
  * @note Syscall number 0x56.
  * @warning This is a privileged syscall. Use \ref envIsSyscallHinted to check if it is available.
  */
-Result svcCreateDeviceAddressSpace(Handle *handle, u64 dev_addr, u64 dev_size);
+Result svcCreateDeviceAddressSpace(Handle* handle, u64 dev_addr, u64 dev_size);
 
 /**
  * @brief Attaches a device address space to a device.
@@ -867,7 +881,8 @@ Result svcDetachDeviceAddressSpace(u64 device, Handle handle);
  * @note Syscall number 0x59.
  * @warning This is a privileged syscall. Use \ref envIsSyscallHinted to check if it is available.
  */
-Result svcMapDeviceAddressSpaceByForce(Handle handle, Handle proc_handle, u64 map_addr, u64 dev_size, u64 dev_addr, u32 perm);
+Result svcMapDeviceAddressSpaceByForce(Handle handle, Handle proc_handle, u64 map_addr, u64 dev_size, u64 dev_addr,
+                                       u32 perm);
 
 /**
  * @brief Maps an attached device address space to an userspace address.
@@ -876,7 +891,8 @@ Result svcMapDeviceAddressSpaceByForce(Handle handle, Handle proc_handle, u64 ma
  * @note Syscall number 0x5A.
  * @warning This is a privileged syscall. Use \ref envIsSyscallHinted to check if it is available.
  */
-Result svcMapDeviceAddressSpaceAligned(Handle handle, Handle proc_handle, u64 map_addr, u64 dev_size, u64 dev_addr, u32 perm);
+Result svcMapDeviceAddressSpaceAligned(Handle handle, Handle proc_handle, u64 map_addr, u64 dev_size, u64 dev_addr,
+                                       u32 perm);
 
 /**
  * @brief Unmaps an attached device address space from an userspace address.
@@ -949,7 +965,8 @@ Result svcLegacyContinueDebugEvent(Handle debug, u32 flags, u64 threadID);
  * @param[in] threadID ID of the thread to dump the context of.
  * @param[in] flags Register groups to select, combination of @ref RegisterGroup flags.
  * @note Syscall number 0x67.
- * @warning Official kernel will not dump any CPU GPR if the thread is currently executing a system call (except @ref svcBreak and @ref svcReturnFromException).
+ * @warning Official kernel will not dump any CPU GPR if the thread is currently executing a system call (except @ref
+ * svcBreak and @ref svcReturnFromException).
  * @warning This is a privileged syscall. Use \ref envIsSyscallHinted to check if it is available.
  */
 Result svcGetDebugThreadContext(ThreadContext* ctx, Handle debug, u64 threadID, u32 flags);
@@ -962,7 +979,8 @@ Result svcGetDebugThreadContext(ThreadContext* ctx, Handle debug, u64 threadID, 
  * @param[in] ctx Input thread context (register dump).
  * @param[in] flags Register groups to select, combination of @ref RegisterGroup flags.
  * @note Syscall number 0x68.
- * @warning Official kernel will return an error if the thread is currently executing a system call (except @ref svcBreak and @ref svcReturnFromException).
+ * @warning Official kernel will return an error if the thread is currently executing a system call (except @ref
+ * svcBreak and @ref svcReturnFromException).
  * @warning This is a privileged syscall. Use \ref envIsSyscallHinted to check if it is available.
  */
 Result svcSetDebugThreadContext(Handle debug, u64 threadID, const ThreadContext* ctx, u32 flags);
@@ -978,7 +996,7 @@ Result svcSetDebugThreadContext(Handle debug, u64 threadID, const ThreadContext*
  * @note Syscall number 0x65.
  * @warning This is a privileged syscall. Use \ref envIsSyscallHinted to check if it is available.
  */
-Result svcGetProcessList(u32 *num_out, u64 *pids_out, u32 max_pids);
+Result svcGetProcessList(u32* num_out, u64* pids_out, u32 max_pids);
 
 /**
  * @brief Retrieves a list of all threads for a debug handle (or zero).
@@ -986,7 +1004,7 @@ Result svcGetProcessList(u32 *num_out, u64 *pids_out, u32 max_pids);
  * @note Syscall number 0x66.
  * @warning This is a privileged syscall. Use \ref envIsSyscallHinted to check if it is available.
  */
-Result svcGetThreadList(u32 *num_out, u64 *tids_out, u32 max_tids, Handle debug);
+Result svcGetThreadList(u32* num_out, u64* tids_out, u32 max_tids, Handle debug);
 
 ///@}
 
@@ -1034,10 +1052,12 @@ Result svcGetDebugThreadParam(u64* out_64, u32* out_32, Handle debug, u64 thread
  * @brief Retrieves privileged information about the system, or a certain kernel object.
  * @param[out] out Variable to which store the information.
  * @param[in] id0 First ID of the property to retrieve.
- * @param[in] handle Handle of the object to retrieve information from, or \ref INVALID_HANDLE to retrieve information about the system.
+ * @param[in] handle Handle of the object to retrieve information from, or \ref INVALID_HANDLE to retrieve information
+ * about the system.
  * @param[in] id1 Second ID of the property to retrieve.
  * @return Result code.
- * @remark The full list of property IDs can be found on the <a href="https://switchbrew.org/wiki/SVC#svcGetSystemInfo">switchbrew.org wiki</a>.
+ * @remark The full list of property IDs can be found on the <a
+ * href="https://switchbrew.org/wiki/SVC#svcGetSystemInfo">switchbrew.org wiki</a>.
  * @note Syscall number 0x6F.
  * @warning This is a privileged syscall. Use \ref envIsSyscallHinted to check if it is available.
  */
@@ -1054,7 +1074,7 @@ Result svcGetSystemInfo(u64* out, u64 id0, Handle handle, u64 id1);
  * @note Syscall number 0x70.
  * @warning This is a privileged syscall. Use \ref envIsSyscallHinted to check if it is available.
  */
-Result svcCreatePort(Handle* portServer, Handle *portClient, s32 max_sessions, bool is_light, const char* name);
+Result svcCreatePort(Handle* portServer, Handle* portClient, s32 max_sessions, bool is_light, const char* name);
 
 /**
  * @brief Manages a named port.
@@ -1126,7 +1146,7 @@ Result svcUnmapProcessMemory(void* dst, Handle proc, u64 src, u64 size);
  * @note Syscall number 0x76.
  * @warning This is a privileged syscall. Use \ref envIsSyscallHinted to check if it is available.
  */
-Result svcQueryProcessMemory(MemoryInfo* meminfo_ptr, u32 *pageinfo, Handle proc, u64 addr);
+Result svcQueryProcessMemory(MemoryInfo* meminfo_ptr, u32* pageinfo, Handle proc, u64 addr);
 
 /**
  * @brief Maps normal heap in a certain process as executable code (used when loading NROs).
@@ -1187,7 +1207,7 @@ Result svcTerminateProcess(Handle proc);
  * @note Syscall number 0x7C.
  * @warning This is a privileged syscall. Use \ref envIsSyscallHinted to check if it is available.
  */
-Result svcGetProcessInfo(u64 *out, Handle proc, ProcessInfoType which);
+Result svcGetProcessInfo(u64* out, Handle proc, ProcessInfoType which);
 
 ///@}
 

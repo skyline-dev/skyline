@@ -3,19 +3,20 @@
  * @brief Transfer memory handling
  * @author plutoo
  * @copyright libnx Authors
- * @remark Transfer memory differs from shared memory in the fact that the user process (as opposed to the kernel) allocates and owns its backing memory.
+ * @remark Transfer memory differs from shared memory in the fact that the user process (as opposed to the kernel)
+ * allocates and owns its backing memory.
  */
 #pragma once
-#include "../types.h"
 #include "../kernel/svc.h"
+#include "../types.h"
 
 /// Transfer memory information structure.
 typedef struct {
-    Handle      handle;   ///< Kernel object handle.
-    size_t      size;     ///< Size of the transfer memory object.
-    Permission  perm;     ///< Permissions of the transfer memory object.
-    void*       src_addr; ///< Address of the source backing memory.
-    void*       map_addr; ///< Address to which the transfer memory object is mapped.
+    Handle handle;    ///< Kernel object handle.
+    size_t size;      ///< Size of the transfer memory object.
+    Permission perm;  ///< Permissions of the transfer memory object.
+    void* src_addr;   ///< Address of the source backing memory.
+    void* map_addr;   ///< Address to which the transfer memory object is mapped.
 } TransferMemory;
 
 /**
@@ -68,9 +69,7 @@ Result tmemUnmap(TransferMemory* t);
  * @param t Transfer memory information structure.
  * @return Mapped address of the transfer memory object.
  */
-static inline void* tmemGetAddr(TransferMemory* t){
-    return t->map_addr;
-}
+static inline void* tmemGetAddr(TransferMemory* t) { return t->map_addr; }
 
 /**
  * @brief Frees up resources used by a transfer memory object, unmapping and closing handles, etc.

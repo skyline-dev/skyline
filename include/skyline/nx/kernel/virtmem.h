@@ -19,7 +19,7 @@ void* virtmemReserve(size_t size);
  * @param addr Pointer to the slice.
  * @param size Size of the slice.
  */
-void  virtmemFree(void* addr, size_t size);
+void virtmemFree(void* addr, size_t size);
 
 /**
  * @brief Reserves a slice of address space inside the stack memory mapping region (for use with svcMapMemory).
@@ -33,14 +33,13 @@ void* virtmemReserveStack(size_t size);
  * @param addr Pointer to the slice.
  * @param size Size of the slice.
  */
-void  virtmemFreeStack(void* addr, size_t size);
-
+void virtmemFreeStack(void* addr, size_t size);
 
 #ifdef __cplusplus
-extern "C" { 
+extern "C" {
 #endif
 
-void virtmemSetup(); 
+void virtmemSetup();
 
 #ifdef __cplusplus
 }

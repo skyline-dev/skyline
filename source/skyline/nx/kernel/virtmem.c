@@ -1,21 +1,16 @@
-#include "types.h"
 #include "skyline/nx/kernel/virtmem.h"
-#include "skyline/nx/result.h"
+
 #include "skyline/nx/kernel/mutex.h"
 #include "skyline/nx/kernel/svc.h"
-
+#include "skyline/nx/result.h"
+#include "types.h"
 
 typedef struct {
-    u64  start;
-    u64  end;
+    u64 start;
+    u64 end;
 } VirtualRegion;
 
-enum {
-    REGION_STACK=0,
-    REGION_HEAP=1,
-    REGION_LEGACY_ALIAS=2,
-    REGION_MAX
-};
+enum { REGION_STACK = 0, REGION_HEAP = 1, REGION_LEGACY_ALIAS = 2, REGION_MAX };
 
 static VirtualRegion g_AddressSpace;
 static VirtualRegion g_Region[REGION_MAX];
@@ -33,47 +28,44 @@ static Result _GetRegionFromInfo(VirtualRegion* r, u64 id0_addr, u32 id0_sz) {
 
         if (R_SUCCEEDED(rc)) {
             r->start = base;
-            r->end   = base + size;
+            r->end = base + size;
         }
     }
 
     return rc;
 }
 
-static inline bool _InRegion(VirtualRegion* r, u64 addr) {
-    return (addr >= r->start) && (addr < r->end);
-}
+static inline bool _InRegion(VirtualRegion* r, u64 addr) { return (addr >= r->start) && (addr < r->end); }
 
 void virtmemSetup(void) {
     if (R_FAILED(_GetRegionFromInfo(&g_AddressSpace, InfoType_AslrRegionAddress, InfoType_AslrRegionSize))) {
         // [1.0.0] doesn't expose address space size so we have to do this dirty hack to detect it.
         // Forgive me.
 
-        Result rc = svcUnmapMemory((void*) 0xFFFFFFFFFFFFE000ULL, (void*) 0xFFFFFE000ull, 0x1000);
+        Result rc = svcUnmapMemory((void*)0xFFFFFFFFFFFFE000ULL, (void*)0xFFFFFE000ull, 0x1000);
 
         if (rc == 0xD401) {
             // Invalid src-address error means that a valid 36-bit address was rejected.
             // Thus we are 32-bit.
             g_AddressSpace.start = 0x200000ull;
-            g_AddressSpace.end   = 0x100000000ull;
+            g_AddressSpace.end = 0x100000000ull;
 
             g_Region[REGION_STACK].start = 0x200000ull;
             g_Region[REGION_STACK].end = 0x40000000ull;
-        }
-        else if (rc == 0xDC01) {
+        } else if (rc == 0xDC01) {
             // Invalid dst-address error means our 36-bit src-address was valid.
             // Thus we are 36-bit.
             g_AddressSpace.start = 0x8000000ull;
-            g_AddressSpace.end   = 0x1000000000ull;
+            g_AddressSpace.end = 0x1000000000ull;
 
             g_Region[REGION_STACK].start = 0x8000000ull;
             g_Region[REGION_STACK].end = 0x80000000ull;
-        }
-        else {
+        } else {
             R_ERRORONFAIL(rc);
         }
     } else {
-        R_ERRORONFAIL(_GetRegionFromInfo(&g_Region[REGION_STACK], InfoType_StackRegionAddress, InfoType_StackRegionSize));
+        R_ERRORONFAIL(
+            _GetRegionFromInfo(&g_Region[REGION_STACK], InfoType_StackRegionAddress, InfoType_StackRegionSize));
     }
 
     R_ERRORONFAIL(_GetRegionFromInfo(&g_Region[REGION_HEAP], InfoType_HeapRegionAddress, InfoType_HeapRegionSize));
@@ -86,13 +78,12 @@ void* virtmemReserve(size_t size) {
     u32 pageinfo;
     size_t i;
 
-    size = (size + 0xFFF) &~ 0xFFF;
+    size = (size + 0xFFF) & ~0xFFF;
 
     mutexLock(&g_VirtMemMutex);
     u64 addr = g_CurrentAddr;
 
-    while (1)
-    {
+    while (1) {
         // Add a guard page.
         addr += 0x1000;
 
@@ -118,8 +109,7 @@ void* virtmemReserve(size_t size) {
         }
 
         // Check if we end up in a reserved region.
-        for(i=0; i<REGION_MAX; i++)
-        {
+        for (i = 0; i < REGION_MAX; i++) {
             u64 end = addr + size - 1;
 
             if (_InRegion(&g_Region[i], addr) || _InRegion(&g_Region[i], end)) {
@@ -140,28 +130,26 @@ void* virtmemReserve(size_t size) {
     g_CurrentAddr = addr + size;
 
     mutexUnlock(&g_VirtMemMutex);
-    return (void*) addr;
+    return (void*)addr;
 }
 
-void  virtmemFree(void* addr, size_t size) {
+void virtmemFree(void* addr, size_t size) {
     IGNORE_ARG(addr);
     IGNORE_ARG(size);
 }
 
-void* virtmemReserveStack(size_t size)
-{
+void* virtmemReserveStack(size_t size) {
     Result rc;
 
     MemoryInfo meminfo;
     u32 pageinfo;
 
-    size = (size + 0xFFF) &~ 0xFFF;
+    size = (size + 0xFFF) & ~0xFFF;
 
     mutexLock(&g_VirtMemMutex);
     u64 addr = g_CurrentMapAddr;
 
-    while (1)
-    {
+    while (1) {
         // Add a guard page.
         addr += 0x1000;
 
@@ -193,7 +181,7 @@ void* virtmemReserveStack(size_t size)
     g_CurrentMapAddr = addr + size;
 
     mutexUnlock(&g_VirtMemMutex);
-    return (void*) addr;
+    return (void*)addr;
 }
 
 void virtmemFreeStack(void* addr, size_t size) {
