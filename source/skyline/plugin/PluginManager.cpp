@@ -52,18 +52,14 @@ namespace skyline::plugin {
             }
 
             plugin.Size = fileSize;
-            plugin.Data = memalign(0x1000, plugin.Size);
+            plugin.Data = std::unique_ptr<u8>((u8*)memalign(0x1000, plugin.Size));
 
-            rc = skyline::utils::readFile(plugin.Path, 0, plugin.Data, plugin.Size);
+            rc = skyline::utils::readFile(plugin.Path, 0, plugin.Data.get(), plugin.Size);
             if (R_SUCCEEDED(rc))
                 skyline::logger::s_Instance->LogFormat("[PluginManager] Read %s", plugin.Path.c_str());
             else {
                 skyline::logger::s_Instance->LogFormat("[PluginManager] Failed to read '%s'. (0x%x). Skipping.",
                                                        plugin.Path.c_str(), rc);
-                
-                // free space allocated for the file
-                free(plugin.Data);
-                
                 // stop tracking
                 pluginInfoIter = m_pluginInfos.erase(pluginInfoIter);
                 continue;
@@ -79,8 +75,8 @@ namespace skyline::plugin {
         pluginInfoIter = m_pluginInfos.begin();
         while (pluginInfoIter != m_pluginInfos.end()) {
             auto& plugin = *pluginInfoIter;
-            nn::ro::NroHeader* nro = (nn::ro::NroHeader*)plugin.Data;
-            nn::crypto::GenerateSha256Hash(&plugin.Hash, sizeof(utils::Sha256Hash), nro, nro->size);
+            nn::ro::NroHeader* nroHeader = (nn::ro::NroHeader*)plugin.Data.get();
+            nn::crypto::GenerateSha256Hash(&plugin.Hash, sizeof(utils::Sha256Hash), nroHeader, nroHeader->size);
 
             if (sortedHashes.find(plugin.Hash) != sortedHashes.end()) {
                 skyline::logger::s_Instance->LogFormat("[PluginManager] %s is detected duplicate, ignoring...",
@@ -96,8 +92,7 @@ namespace skyline::plugin {
         }
 
         // (sizeof(nrr header) + sizeof(sha256) * plugin count) aligned by 0x1000, as required by ro
-        size_t nrrSize =
-            ALIGN_UP(sizeof(nn::ro::NrrHeader) + (m_pluginInfos.size() * sizeof(utils::Sha256Hash)), 0x1000);
+        m_nrrSize = ALIGN_UP(sizeof(nn::ro::NrrHeader) + (m_pluginInfos.size() * sizeof(utils::Sha256Hash)), 0x1000);
 
         // get our own program ID
         // TODO: dedicated util for this
@@ -107,36 +102,35 @@ namespace skyline::plugin {
         nn::ro::NrrHeader nrr = {
             .magic = 0x3052524E, // NRR0
             .program_id = {program_id},
-            .size = nrrSize,
+            .size = (u32)m_nrrSize,
             .type = 0, // ForSelf
             .hashes_offset = sizeof(nn::ro::NrrHeader),
-            .num_hashes = m_pluginInfos.size(),
+            .num_hashes = (u32)m_pluginInfos.size(),
         };
         
-        char* nrrBin = (char*) memalign(0x1000, nrrSize); // must be page aligned 
-        memset(nrrBin, 0, nrrSize);
+        m_nrrBuffer = std::unique_ptr<u8>((u8*)memalign(0x1000, m_nrrSize)); // must be page aligned 
+        memset(m_nrrBuffer.get(), 0, m_nrrSize);
 
         // copy hashes into nrr
-        utils::Sha256Hash* hashes = reinterpret_cast<utils::Sha256Hash*>((u64)(nrrBin) + nrr.hashes_offset);
+        utils::Sha256Hash* hashes = reinterpret_cast<utils::Sha256Hash*>((u64)(m_nrrBuffer.get()) + nrr.hashes_offset);
         auto curHashIdx = 0;
         for (auto hash : sortedHashes) {
             hashes[curHashIdx++] = hash;
         }
 
         // copy header into nrr
-        memcpy(nrrBin, &nrr, sizeof(nn::ro::NrrHeader));
+        memcpy(m_nrrBuffer.get(), &nrr, sizeof(nn::ro::NrrHeader));
         
         // try to register plugins
         nn::ro::RegistrationInfo reg;
-        rc = nn::ro::RegisterModuleInfo(&reg, nrrBin);
+        rc = nn::ro::RegisterModuleInfo(&reg, m_nrrBuffer.get());
         
         if(R_FAILED(rc)){
             // ro rejected, free and bail
-            free(nrrBin);
+            m_nrrBuffer = nullptr;
             
             // free all loaded plugins
-            // for(auto& kv : plugins)  TODO: refactor to smart pointer, no need to free
-            //     free(kv.second.Data);
+            m_pluginInfos.clear();
             
             skyline::logger::s_Instance->LogFormat("[PluginManager] Failed to register NRR (0x%x).", rc);
             return;
@@ -148,16 +142,12 @@ namespace skyline::plugin {
             auto& plugin = *pluginInfoIter;
 
             // attempt to get the required size for the bss 
-            size_t bssSize;
-            rc = nn::ro::GetBufferSize(&bssSize, plugin.Data);
+            rc = nn::ro::GetBufferSize(&plugin.BssSize, plugin.Data.get());
             if (R_FAILED(rc)) {
                 // ro rejected file, bail
                 // (the original input is not validated to be an actual NRO, so this isn't unusual)
                 skyline::logger::s_Instance->LogFormat(
                     "[PluginManager] nn::ro::GetBufferSize failed on %s (0x%x), not an nro?", plugin.Path.c_str(), rc);
-                
-                // we don't need the file data any more
-                free(plugin.Data);
                 
                 // stop tracking
                 pluginInfoIter = m_pluginInfos.erase(pluginInfoIter);
@@ -165,10 +155,10 @@ namespace skyline::plugin {
                 continue;
             }
 
-            void* bss = memalign(0x1000, bssSize); // must be page aligned 
+            plugin.BssData = std::unique_ptr<u8>((u8*)memalign(0x1000, plugin.BssSize)); // must be page aligned
 
             rc = nn::ro::LoadModule(
-                &plugin.Module, plugin.Data, bss, bssSize,
+                &plugin.Module, plugin.Data.get(), plugin.BssData.get(), plugin.BssSize,
                 nn::ro::BindFlag_Now);  // bind immediately, so all symbols are immediately available
  
             if (R_SUCCEEDED(rc)) {
@@ -177,10 +167,6 @@ namespace skyline::plugin {
             } else {
                 skyline::logger::s_Instance->LogFormat("[PluginManager] Failed to load %s, return code: 0x%x",
                                                        plugin.Path.c_str(), rc);
-
-                // couldn't be loaded, free unused memory
-                free(bss);
-                free(plugin.Data);
 
                 // stop tracking
                 pluginInfoIter = m_pluginInfos.erase(pluginInfoIter);
