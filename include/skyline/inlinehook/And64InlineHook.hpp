@@ -27,36 +27,33 @@
  SOFTWARE.
  */
 #pragma once
-#define A64_MAX_BACKUPS 256*2
-
-
+#define A64_MAX_BACKUPS 256 * 2
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include "../utils/utils.h"
-#include "../nx/result.h"
 #include "../nx/kernel/jit.h"
+#include "../nx/result.h"
+#include "../utils/utils.h"
 #include "alloc.h"
 #include "mem.h"
 
-long long int llabs (long long int n);
+long long int llabs(long long int n);
 
 #ifdef __cplusplus
 }
 #endif
 
-#include "skyline/logger/Logger.hpp"
 #include "controlledpages.hpp"
-
+#include "skyline/logger/Logger.hpp"
 
 struct InlineCtx {
     nn::os::CpuRegister registers[29];
 };
 
 void A64HookInit();
-extern "C" void A64HookFunction(void *const symbol, void *const replace, void **result);
-void *A64HookFunctionV(void *const symbol, void *const replace,
-                        void *const rxtr, void* const rwtr, const uintptr_t rwx_size);
-void A64InlineHook(void *const symbol, void *const replace);
+extern "C" void A64HookFunction(void* const symbol, void* const replace, void** result);
+void* A64HookFunctionV(void* const symbol, void* const replace, void* const rxtr, void* const rwtr,
+                       const uintptr_t rwx_size);
+void A64InlineHook(void* const symbol, void* const replace);

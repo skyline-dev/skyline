@@ -7,18 +7,15 @@
 
 #include "RootObject.h"
 
-namespace nn
-{
-    namespace nex
-    {
-        class DynamicRunTimeInterface : public nn::nex::RootObject
-        {
-        public:
-            DynamicRunTimeInterface();
+namespace nn {
+namespace nex {
+    class DynamicRunTimeInterface : public nn::nex::RootObject {
+       public:
+        DynamicRunTimeInterface();
 
-            virtual ~DynamicRunTimeInterface();
+        virtual ~DynamicRunTimeInterface();
 
-            u64* GetInstance();
-        };
+        u64* GetInstance();
     };
-};
+};  // namespace nex
+};  // namespace nn

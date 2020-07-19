@@ -19,7 +19,8 @@ void resolverSetEnableServiceDiscovery(bool enable);
 /// [5.0.0+] Enables or disables the usage of the DNS cache on the current thread (not implemented).
 void resolverSetEnableDnsCache(bool enable);
 
-/// Cancels a previous resolver command (handle obtained with \ref resolverGetCancelHandle prior to calling the command).
+/// Cancels a previous resolver command (handle obtained with \ref resolverGetCancelHandle prior to calling the
+/// command).
 Result resolverCancel(u32 handle);
 
 /// [5.0.0+] Removes a hostname from the DNS cache (not implemented).

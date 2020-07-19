@@ -5,12 +5,12 @@
 
 #pragma once
 
-#include "nvn/types.h"
-
 #include <string>
 
+#include "nvn/types.h"
+
 #define NVN_DEFPROC(s) PFNC_##s s
-#define NVN_GETPROCADDR(s) s = reinterpret_cast<PFNC_ ##s>(nvnDeviceGetProcAddress(device, #s))
+#define NVN_GETPROCADDR(s) s = reinterpret_cast<PFNC_##s>(nvnDeviceGetProcAddress(device, #s))
 
 void nvnInit(NVNdevice*);
 
@@ -22,7 +22,7 @@ typedef void (*PFNC_nvnDeviceBuilderSetDefaults)(NVNdeviceBuilder*);
 typedef void (*PFNC_nvnDeviceBuilderSetFlags)(NVNdeviceBuilder*, u32);
 
 // DEVICE
-typedef bool (*PFNC_nvnDeviceInitialize)(NVNdevice*,  NVNdeviceBuilder*);
+typedef bool (*PFNC_nvnDeviceInitialize)(NVNdevice*, NVNdeviceBuilder*);
 typedef void (*PFNC_nvnDeviceFinalize)(NVNdevice*);
 typedef void (*PFNC_nvnDeviceGetInteger)(NVNdevice*, NVNdeviceInfo, u32*);
 typedef NVNimageHandle (*PFNC_nvnDeviceGetImageHandle)(NVNdevice*, u32);
@@ -39,7 +39,7 @@ typedef void (*PFNC_nvnSyncSetDebugLabel)(NVNsync*, char*);
 typedef bool (*PFNC_nvnWindowInitialize)(NVNwindow*, const NVNwindowBuilder*);
 typedef void (*PFNC_nvnWindowFinalize)(NVNwindow*);
 typedef void (*PFNC_nvnWindowSetCrop)(NVNwindow*, int x, int y, int width, int height);
-typedef int  (*PFNC_nvnWindowPresentInterval)(NVNwindow*);
+typedef int (*PFNC_nvnWindowPresentInterval)(NVNwindow*);
 typedef void (*PFNC_nvnWindowSetPresentInterval)(NVNwindow*, int);
 typedef void (*PFNC_nvnWindowSetDebugLabel)(NVNwindow*, char*);
 

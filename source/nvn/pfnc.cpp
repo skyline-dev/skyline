@@ -36,8 +36,9 @@ NVN_DEFPROC(nvnQueueGetTotalComputeMemoryUsed);
 NVN_DEFPROC(nvnQueueGetTotalControlMemoryUsed);
 NVN_DEFPROC(nvnQueueSetDebugLabel);
 
-void nvnInit(NVNdevice* device){
-    nvnDeviceGetProcAddress = reinterpret_cast<PFNC_nvnDeviceGetProcAddress>(nvnBootstrapLoader("nvnDeviceGetProcAddress"));
+void nvnInit(NVNdevice* device) {
+    nvnDeviceGetProcAddress =
+        reinterpret_cast<PFNC_nvnDeviceGetProcAddress>(nvnBootstrapLoader("nvnDeviceGetProcAddress"));
 
     NVN_GETPROCADDR(nvnDeviceBuilderGetFlags);
     NVN_GETPROCADDR(nvnDeviceBuilderSetDefaults);
@@ -60,7 +61,7 @@ void nvnInit(NVNdevice* device){
     NVN_GETPROCADDR(nvnWindowPresentInterval);
     NVN_GETPROCADDR(nvnWindowSetPresentInterval);
     NVN_GETPROCADDR(nvnWindowSetDebugLabel);
-    
+
     NVN_GETPROCADDR(nvnQueueInitalize);
     NVN_GETPROCADDR(nvnQueueFinalize);
     NVN_GETPROCADDR(nvnQueueFlush);

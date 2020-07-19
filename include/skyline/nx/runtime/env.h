@@ -9,37 +9,39 @@
 
 /// Structure representing an entry in the homebrew environment configuration.
 typedef struct {
-    u32 Key;      ///< Type of entry
-    u32 Flags;    ///< Entry flags
-    u64 Value[2]; ///< Entry arguments (type-specific)
+    u32 Key;       ///< Type of entry
+    u32 Flags;     ///< Entry flags
+    u64 Value[2];  ///< Entry arguments (type-specific)
 } ConfigEntry;
 
 /// Entry flags
 enum {
-    EntryFlag_IsMandatory = BIT(0), ///< Specifies that the entry **must** be processed by the homebrew application.
+    EntryFlag_IsMandatory = BIT(0),  ///< Specifies that the entry **must** be processed by the homebrew application.
 };
 
 ///< Types of entry
 enum {
-    EntryType_EndOfList=0,            ///< Entry list terminator.
-    EntryType_MainThreadHandle=1,     ///< Provides the handle to the main thread.
-    EntryType_NextLoadPath=2,         ///< Provides a buffer containing information about the next homebrew application to load.
-    EntryType_OverrideHeap=3,         ///< Provides heap override information.
-    EntryType_OverrideService=4,      ///< Provides service override information.
-    EntryType_Argv=5,                 ///< Provides argv.
-    EntryType_SyscallAvailableHint=6, ///< Provides syscall availability hints.
-    EntryType_AppletType=7,           ///< Provides APT applet type.
-    EntryType_AppletWorkaround=8,     ///< Indicates that APT is broken and should not be used.
-    EntryType_Reserved9=9,            ///< Unused/reserved entry type, formerly used by StdioSockets.
-    EntryType_ProcessHandle=10,       ///< Provides the process handle.
-    EntryType_LastLoadResult=11,      ///< Provides the last load result.
-    EntryType_RandomSeed=14,          ///< Provides random data used to seed the pseudo-random number generator.
-    EntryType_UserIdStorage=15,       ///< Provides persistent storage for the preselected user id.
-    EntryType_HosVersion=16,          ///< Provides the currently running Horizon OS version.
+    EntryType_EndOfList = 0,         ///< Entry list terminator.
+    EntryType_MainThreadHandle = 1,  ///< Provides the handle to the main thread.
+    EntryType_NextLoadPath =
+        2,  ///< Provides a buffer containing information about the next homebrew application to load.
+    EntryType_OverrideHeap = 3,          ///< Provides heap override information.
+    EntryType_OverrideService = 4,       ///< Provides service override information.
+    EntryType_Argv = 5,                  ///< Provides argv.
+    EntryType_SyscallAvailableHint = 6,  ///< Provides syscall availability hints.
+    EntryType_AppletType = 7,            ///< Provides APT applet type.
+    EntryType_AppletWorkaround = 8,      ///< Indicates that APT is broken and should not be used.
+    EntryType_Reserved9 = 9,             ///< Unused/reserved entry type, formerly used by StdioSockets.
+    EntryType_ProcessHandle = 10,        ///< Provides the process handle.
+    EntryType_LastLoadResult = 11,       ///< Provides the last load result.
+    EntryType_RandomSeed = 14,           ///< Provides random data used to seed the pseudo-random number generator.
+    EntryType_UserIdStorage = 15,        ///< Provides persistent storage for the preselected user id.
+    EntryType_HosVersion = 16,           ///< Provides the currently running Horizon OS version.
 };
 
 enum {
-    EnvAppletFlags_ApplicationOverride = BIT(0) ///< Use AppletType_Application instead of AppletType_SystemApplication.
+    EnvAppletFlags_ApplicationOverride =
+        BIT(0)  ///< Use AppletType_Application instead of AppletType_SystemApplication.
 };
 
 /// Loader return function.
@@ -64,14 +66,14 @@ Handle envGetMainThreadHandle(void);
 bool envIsNso(void);
 
 /// Returns true if the environment has a heap override.
-bool  envHasHeapOverride(void);
+bool envHasHeapOverride(void);
 /// Returns the address of the overriden heap.
 void* envGetHeapOverrideAddr(void);
 /// Returns the size of the overriden heap.
-u64   envGetHeapOverrideSize(void);
+u64 envGetHeapOverrideSize(void);
 
 /// Returns true if the environment has an argv array.
-bool  envHasArgv(void);
+bool envHasArgv(void);
 /// Returns the pointer to the argv array.
 void* envGetArgv(void);
 

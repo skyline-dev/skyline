@@ -51,29 +51,18 @@ void skyline_main() {
 
     // hook to get a signal upon rom mount
     nn::os::InitializeEvent(&skyline::utils::g_RomMountedEvent, false, nn::os::EventClearMode_AutoClear);
-    A64HookFunction(
-        reinterpret_cast<void*>(nn::fs::MountRom),
-        reinterpret_cast<void*>(handleNnFsMountRom),
-        (void**) &nnFsMountRomImpl
-    );
+    A64HookFunction(reinterpret_cast<void*>(nn::fs::MountRom), reinterpret_cast<void*>(handleNnFsMountRom),
+                    (void**)&nnFsMountRomImpl);
 
     // manually init nn::ro ourselves, then stub it so the game doesn't try again
     nn::ro::Initialize();
-    A64HookFunction(
-        reinterpret_cast<void*>(nn::ro::Initialize), 
-        reinterpret_cast<void*>(stub), 
-        NULL
-    );
+    A64HookFunction(reinterpret_cast<void*>(nn::ro::Initialize), reinterpret_cast<void*>(stub), NULL);
 
-    skyline::logger::s_Instance->LogFormat(
-        "[skyline_main] text: 0x%" PRIx64 " | rodata: 0x%" PRIx64
-        " | data: 0x%" PRIx64 " | bss: 0x%" PRIx64 " | heap: 0x%" PRIx64, 
-        skyline::utils::g_MainTextAddr,
-        skyline::utils::g_MainRodataAddr,
-        skyline::utils::g_MainDataAddr,
-        skyline::utils::g_MainBssAddr,
-        skyline::utils::g_MainHeapAddr
-    );
+    skyline::logger::s_Instance->LogFormat("[skyline_main] text: 0x%" PRIx64 " | rodata: 0x%" PRIx64
+                                           " | data: 0x%" PRIx64 " | bss: 0x%" PRIx64 " | heap: 0x%" PRIx64,
+                                           skyline::utils::g_MainTextAddr, skyline::utils::g_MainRodataAddr,
+                                           skyline::utils::g_MainDataAddr, skyline::utils::g_MainBssAddr,
+                                           skyline::utils::g_MainHeapAddr);
 
     // start task queue
     skyline::utils::SafeTaskQueue* taskQueue = new skyline::utils::SafeTaskQueue(100);

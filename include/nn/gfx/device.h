@@ -7,21 +7,14 @@
 
 #include "types.h"
 
-namespace nn
-{
-    namespace gfx
-    {
-        class DeviceInfo
-        {
-        public:
-
-            u64 mInfo; // _0
-        };
-
-        template<typename T>
-        class TDevice
-        {
-            
-        };
+namespace nn {
+namespace gfx {
+    class DeviceInfo {
+       public:
+        u64 mInfo;  // _0
     };
-};
+
+    template <typename T>
+    class TDevice {};
+};  // namespace gfx
+};  // namespace nn

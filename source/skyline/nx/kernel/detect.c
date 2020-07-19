@@ -1,11 +1,12 @@
 // Copyright 2017 plutoo
-#include "types.h"
+#include "skyline/nx/kernel/detect.h"
+
 #include "alloc.h"
 #include "mem.h"
-#include "skyline/nx/result.h"
-#include "skyline/nx/kernel/detect.h"
 #include "skyline/nx/kernel/mutex.h"
 #include "skyline/nx/kernel/svc.h"
+#include "skyline/nx/result.h"
+#include "types.h"
 
 static bool g_VersionCached;
 static Mutex g_VersionMutex;
@@ -15,10 +16,8 @@ static bool g_JitKernelPatchCached;
 static Mutex g_JitKernelPatchMutex;
 static bool g_JitKernelPatchDetected;
 
-static void _CacheVersion(void)
-{
-    if (__atomic_load_n(&g_VersionCached, __ATOMIC_SEQ_CST))
-        return;
+static void _CacheVersion(void) {
+    if (__atomic_load_n(&g_VersionCached, __ATOMIC_SEQ_CST)) return;
 
     mutexLock(&g_VersionMutex);
 
@@ -35,9 +34,11 @@ static void _CacheVersion(void)
         g_Version = 3;
     if (R_VALUE(svcGetInfo(&tmp, InfoType_InitialProcessIdRange, INVALID_HANDLE, 0)) != KERNELRESULT(InvalidEnumValue))
         g_Version = 4;
-    if (R_VALUE(svcGetInfo(&tmp, InfoType_UserExceptionContextAddress, INVALID_HANDLE, 0)) != KERNELRESULT(InvalidEnumValue))
+    if (R_VALUE(svcGetInfo(&tmp, InfoType_UserExceptionContextAddress, INVALID_HANDLE, 0)) !=
+        KERNELRESULT(InvalidEnumValue))
         g_Version = 5;
-    if (R_VALUE(svcGetInfo(&tmp, InfoType_TotalNonSystemMemorySize, INVALID_HANDLE, 0)) != KERNELRESULT(InvalidEnumValue))
+    if (R_VALUE(svcGetInfo(&tmp, InfoType_TotalNonSystemMemorySize, INVALID_HANDLE, 0)) !=
+        KERNELRESULT(InvalidEnumValue))
         g_Version = 6;
 
     __atomic_store_n(&g_VersionCached, true, __ATOMIC_SEQ_CST);
@@ -45,10 +46,8 @@ static void _CacheVersion(void)
     mutexUnlock(&g_VersionMutex);
 }
 
-static void _CacheJitKernelPatch(void)
-{
-    if (__atomic_load_n(&g_JitKernelPatchCached, __ATOMIC_SEQ_CST))
-        return;
+static void _CacheJitKernelPatch(void) {
+    if (__atomic_load_n(&g_JitKernelPatchCached, __ATOMIC_SEQ_CST)) return;
 
     mutexLock(&g_JitKernelPatchMutex);
 
@@ -67,7 +66,8 @@ static void _CacheJitKernelPatch(void)
         if (R_SUCCEEDED(rc)) {
             // On an unpatched kernel on [5.0.0+], this would return InvalidMemoryState (0xD401).
             // It is not allowed for the creator-process of a CodeMemory object to use svcControlCodeMemory on it.
-            // If the patch is present, the function should return InvalidEnumValue (0xF001), because -1 is not a valid enum CodeOperation.
+            // If the patch is present, the function should return InvalidEnumValue (0xF001), because -1 is not a valid
+            // enum CodeOperation.
             rc = svcControlCodeMemory(code, -1, 0, 0x1000, 0);
 
             g_JitKernelPatchDetected = R_VALUE(rc) == KERNELRESULT(InvalidEnumValue);

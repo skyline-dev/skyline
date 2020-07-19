@@ -3,18 +3,18 @@
 #include "types.h"
 
 namespace skyline::inlinehook {
-    class ControlledPages {
-        private:
-        bool isClaimed;
-        size_t size;
-        
-        public:
-        void* rx;
-        void* rw;
+class ControlledPages {
+   private:
+    bool isClaimed;
+    size_t size;
 
-        ControlledPages(void* addr, size_t size);
+   public:
+    void* rx;
+    void* rw;
 
-        void claim();
-        void unclaim();
-    };
+    ControlledPages(void* addr, size_t size);
+
+    void claim();
+    void unclaim();
 };
+};  // namespace skyline::inlinehook

@@ -5,42 +5,41 @@
  * @copyright libnx Authors
  */
 #pragma once
-#include "types.h"
 #include "../arm/thread_context.h"
+#include "types.h"
 #include "wait.h"
 
 /// Thread information structure.
 typedef struct Thread {
-    Handle handle;         ///< Thread handle.
-    bool   owns_stack_mem; ///< Whether the stack memory is automatically allocated.
-    void*  stack_mem;      ///< Pointer to stack memory.
-    void*  stack_mirror;   ///< Pointer to stack memory mirror.
-    size_t stack_sz;       ///< Stack size.
+    Handle handle;        ///< Thread handle.
+    bool owns_stack_mem;  ///< Whether the stack memory is automatically allocated.
+    void* stack_mem;      ///< Pointer to stack memory.
+    void* stack_mirror;   ///< Pointer to stack memory mirror.
+    size_t stack_sz;      ///< Stack size.
     void** tls_array;
     struct Thread* next;
     struct Thread** prev_next;
 } Thread;
 
 /// Creates a \ref Waiter for a \ref Thread.
-static inline Waiter waiterForThread(Thread* t)
-{
-    return waiterForHandle(t->handle);
-}
+static inline Waiter waiterForThread(Thread* t) { return waiterForHandle(t->handle); }
 
 /**
  * @brief Creates a thread.
  * @param t Thread information structure which will be filled in.
  * @param entry Entrypoint of the thread.
  * @param arg Argument to pass to the entrypoint.
- * @param stack_mem Memory to use as backing for stack/tls/reent. Must be page-aligned. NULL argument means to allocate new memory.
- * @param stack_sz  If stack_mem is NULL, size to use for stack. If stack_mem is non-NULL, size to use for stack + reent + tls (must be page-aligned).
- * @param prio Thread priority (0x00~0x3F); 0x2C is the usual priority of the main thread, 0x3B is a special priority on cores 0..2 that enables preemptive multithreading (0x3F on core 3).
- * @param cpuid ID of the core on which to create the thread (0~3); or -2 to use the default core for the current process.
+ * @param stack_mem Memory to use as backing for stack/tls/reent. Must be page-aligned. NULL argument means to allocate
+ * new memory.
+ * @param stack_sz  If stack_mem is NULL, size to use for stack. If stack_mem is non-NULL, size to use for stack +
+ * reent + tls (must be page-aligned).
+ * @param prio Thread priority (0x00~0x3F); 0x2C is the usual priority of the main thread, 0x3B is a special priority
+ * on cores 0..2 that enables preemptive multithreading (0x3F on core 3).
+ * @param cpuid ID of the core on which to create the thread (0~3); or -2 to use the default core for the current
+ * process.
  * @return Result code.
  */
-Result threadCreate(
-    Thread* t, ThreadFunc entry, void* arg, void *stack_mem, size_t stack_sz,
-    int prio, int cpuid);
+Result threadCreate(Thread* t, ThreadFunc entry, void* arg, void* stack_mem, size_t stack_sz, int prio, int cpuid);
 
 /**
  * @brief Starts the execution of a thread.
@@ -87,7 +86,8 @@ Result threadResume(Thread* t);
  * @param[out] ctx Output thread context (register dump).
  * @param t Thread information structure.
  * @return Result code.
- * @warning Official kernel will not dump x0..x18 if the thread is currently executing a system call, and prior to 6.0.0 doesn't dump TPIDR_EL0.
+ * @warning Official kernel will not dump x0..x18 if the thread is currently executing a system call, and prior
+ * to 6.0.0 doesn't dump TPIDR_EL0.
  */
 Result threadDumpContext(ThreadContext* ctx, Thread* t);
 
@@ -102,7 +102,7 @@ Handle threadGetCurHandle(void);
  * @param destructor Function to run automatically when a thread exits.
  * @return TLS slot ID on success, or a negative value on failure.
  */
-s32 threadTlsAlloc(void (* destructor)(void*));
+s32 threadTlsAlloc(void (*destructor)(void*));
 
 /**
  * @brief Retrieves the value stored in a TLS slot.

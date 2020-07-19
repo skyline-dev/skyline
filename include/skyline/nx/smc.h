@@ -12,9 +12,9 @@ extern "C" {
 #endif
 
 typedef enum {
-   EXO_EMUMMC_TYPE_NONE = 0,
-   EXO_EMUMMC_TYPE_PARTITION = 1,
-   EXO_EMUMMC_TYPE_FILES = 2,
+    EXO_EMUMMC_TYPE_NONE = 0,
+    EXO_EMUMMC_TYPE_PARTITION = 1,
+    EXO_EMUMMC_TYPE_FILES = 2,
 } exo_emummc_type_t;
 
 typedef enum {
@@ -45,20 +45,20 @@ void smcRebootToRcm(void);
 void smcRebootToIramPayload(void);
 void smcPerformShutdown(void);
 
-Result smcCopyToIram(uintptr_t iram_addr, const void *src_addr, u32 size);
-Result smcCopyFromIram(void *dst_addr, uintptr_t iram_addr, u32 size);
+Result smcCopyToIram(uintptr_t iram_addr, const void* src_addr, u32 size);
+Result smcCopyFromIram(void* dst_addr, uintptr_t iram_addr, u32 size);
 
 Result smcReadWriteRegister(u32 phys_addr, u32 value, u32 mask);
 
-void* smcMemCpy(void *dst_addr, void* src_addr, size_t size);
+void* smcMemCpy(void* dst_addr, void* src_addr, size_t size);
 void* smcMemSet(void* dst_addr, u32 value, size_t size);
 
-Result smcWriteAddress8(void *dst_addr, u8 val);
-Result smcWriteAddress16(void *dst_addr, u16 val);
-Result smcWriteAddress32(void *dst_addr, u32 val);
-Result smcWriteAddress64(void *dst_addr, u64 val);
+Result smcWriteAddress8(void* dst_addr, u8 val);
+Result smcWriteAddress16(void* dst_addr, u16 val);
+Result smcWriteAddress32(void* dst_addr, u32 val);
+Result smcWriteAddress64(void* dst_addr, u64 val);
 
-Result smcGetEmummcConfig(exo_emummc_mmc_t mmc_id, exo_emummc_config_t *out_cfg, void *out_paths);
+Result smcGetEmummcConfig(exo_emummc_mmc_t mmc_id, exo_emummc_config_t* out_cfg, void* out_paths);
 
 #ifdef __cplusplus
 }
