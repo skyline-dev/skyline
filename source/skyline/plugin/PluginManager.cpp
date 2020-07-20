@@ -5,7 +5,8 @@
 #include "nn/crypto.h"
 #include "skyline/logger/TcpLogger.hpp"
 
-namespace skyline::plugin {
+namespace skyline {
+namespace plugin {
 
     void Manager::LoadPluginsImpl() {
         Result rc;
@@ -202,4 +203,5 @@ namespace skyline::plugin {
         }
     }
 
-};  // namespace skyline::plugin
+};  // namespace plugin
+};  // namespace skyline
