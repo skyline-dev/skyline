@@ -7,7 +7,8 @@
 #include "nn/ro.h"
 #include "skyline/utils/cpputils.hpp"
 
-namespace skyline::plugin {
+namespace skyline {
+namespace plugin {
 
     static constexpr auto PLUGIN_PATH = "skyline/plugins";
 
@@ -39,4 +40,5 @@ namespace skyline::plugin {
         static inline void LoadPlugins() { GetInstance().LoadPluginsImpl(); }
     };
 
-};  // namespace skyline::plugin
+};  // namespace plugin
+};  // namespace skyline
