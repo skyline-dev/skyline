@@ -74,6 +74,20 @@ namespace plugin {
                 continue;
             }
 
+            // get the required size for the bss
+            rc = nn::ro::GetBufferSize(&plugin.BssSize, plugin.Data.get());
+            if (R_FAILED(rc)) {
+                // ro rejected file, bail
+                // (the original input is not validated to be an actual NRO, so this isn't unusual)
+                skyline::logger::s_Instance->LogFormat(
+                    "[PluginManager] Failed to get NRO buffer size for '%s' (0x%x), not an nro? Skipping.",
+                    plugin.Path.c_str(), rc);
+
+                // stop tracking
+                pluginInfoIter = m_pluginInfos.erase(pluginInfoIter);
+                continue;
+            }
+
             // calculate plugin hashes
             nn::ro::NroHeader* nroHeader = (nn::ro::NroHeader*)plugin.Data.get();
             nn::crypto::GenerateSha256Hash(&plugin.Hash, sizeof(utils::Sha256Hash), nroHeader, nroHeader->size);
@@ -142,20 +156,6 @@ namespace plugin {
         pluginInfoIter = m_pluginInfos.begin();
         while (pluginInfoIter != m_pluginInfos.end()) {
             auto& plugin = *pluginInfoIter;
-
-            // get the required size for the bss
-            rc = nn::ro::GetBufferSize(&plugin.BssSize, plugin.Data.get());
-            if (R_FAILED(rc)) {
-                // ro rejected file, bail
-                // (the original input is not validated to be an actual NRO, so this isn't unusual)
-                skyline::logger::s_Instance->LogFormat(
-                    "[PluginManager] Failed to get NRO buffer size for '%s' (0x%x), not an nro? Skipping.",
-                    plugin.Path.c_str(), rc);
-
-                // stop tracking
-                pluginInfoIter = m_pluginInfos.erase(pluginInfoIter);
-                continue;
-            }
 
             plugin.BssData = std::unique_ptr<u8>((u8*)memalign(0x1000, plugin.BssSize));  // must be page aligned
 
