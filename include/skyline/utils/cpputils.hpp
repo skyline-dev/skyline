@@ -28,6 +28,8 @@ extern nn::settings::system::FirmwareVersion g_CachedFwVer;
 
 void init();
 
+void check_skyline_instances();
+
 Result walkDirectory(std::string const&,
                      std::function<void(nn::fs::DirectoryEntry const&, std::shared_ptr<std::string>)>,
                      bool recursive = true);

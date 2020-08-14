@@ -633,7 +633,7 @@ extern "C" void A64HookFunction(void* const symbol, void* const replace, void** 
 extern const void* inlineHandlerStart;
 extern const void* inlineHandlerEnd;
 
-void A64InlineHook(void* const symbol, void* const replace) {
+extern "C" void A64InlineHook(void* const symbol, void* const replace) {
     u64 start = (u64)&inlineHandlerStart;
     u64 end = (u64)&inlineHandlerEnd;
 
