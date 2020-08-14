@@ -1,0 +1,3 @@
+[submodule "libs/libeiffel"]
+	path = libs/libeiffel
+	url = https://github.com/skyline-dev/libeiffel.git
