@@ -33,10 +33,6 @@ void utils::init() {
     // nn::settings::system::GetFirmwareVersion(&g_CachedFwVer);
 }
 
-void utils::check_skyline_instances() {
-    
-}
-
 bool endsWith(std::string const& str1, std::string const& str2) {
     return str2.size() <= str1.size() && str1.find(str2, str1.size() - str2.size()) != str1.npos;
 }
