@@ -47,6 +47,10 @@ CFLAGS	:=	-g -Wall -ffunction-sections \
 
 CFLAGS	+=	$(INCLUDE) -D__SWITCH__ -DCROSSVER=$(CROSSVER) 
 
+ifneq ($(strip $(NOLOG)),)
+CFLAGS	+=	  "-DNOLOG"
+endif
+
 CXXFLAGS	:= $(CFLAGS) -fno-rtti -fomit-frame-pointer -fno-exceptions -fno-asynchronous-unwind-tables -fno-unwind-tables -enable-libstdcxx-allocator=new -fpermissive 
 
 ASFLAGS	:=	-g $(ARCH)
@@ -134,9 +138,10 @@ all: $(BUILD)
 $(BUILD):
 	@echo "${SOURCES}"
 	@echo "${CPPFILES}"
+	@echo "${CXXFLAGS}"
 	@[ -d $@ ] || mkdir -p $@
 	@cp $(LINKERSCRIPTS)/syms$(CROSSVER).ld $(LINKERSCRIPTS)/symstemp.ld # This is required because you can't pass a variable to the .specs
-	$(MAKE) -C $(BUILD) -f $(CURDIR)/MakefileNSO
+	$(MAKE) -C $(BUILD) -f $(CURDIR)/$(MAKE_NSO)
 	@rm -f $(LINKERSCRIPTS)/symstemp.ld
 
 #---------------------------------------------------------------------------------

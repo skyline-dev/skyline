@@ -10,6 +10,8 @@ namespace skyline::logger {
 
 Logger* s_Instance;
 
+#ifndef NOLOG
+
 std::queue<char*>* g_msgQueue = nullptr;
 
 void ThreadMain(void* arg) {
@@ -96,4 +98,7 @@ void Logger::LogFormat(const char* format, ...) {
 
     return;
 }
+
+#endif  // NOLOG
+
 };  // namespace skyline::logger
