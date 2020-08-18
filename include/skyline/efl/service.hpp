@@ -7,8 +7,9 @@ namespace skyline::efl {
 
 class EflSlService {
    private:
-    static constexpr Result SERVICE_INIT_FAILED = 0x42069114;
-    static constexpr Result INVALID_PLUGIN_NAME = 0x42069115;
+    static constexpr auto SKYLINE_MODULE_NUMBER = 0x1A4;
+    static constexpr Result SERVICE_INIT_FAILED = MAKERESULT(SKYLINE_MODULE_NUMBER, 0);
+    static constexpr Result INVALID_PLUGIN_NAME = MAKERESULT(SKYLINE_MODULE_NUMBER, 1);
 
     EflSlService();
     EflSlService(const EflSlService&) = delete;
