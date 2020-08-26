@@ -7,6 +7,10 @@
 #pragma once
 #include "types.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * @brief Reserves a slice of general purpose address space.
  * @param size The size of the slice of address space that will be reserved (rounded up to page alignment).
@@ -34,10 +38,6 @@ void* virtmemReserveStack(size_t size);
  * @param size Size of the slice.
  */
 void virtmemFreeStack(void* addr, size_t size);
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 void virtmemSetup();
 

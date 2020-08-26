@@ -39,4 +39,31 @@ Result EflSlService::Log(const char* moduleName, EiffelLogLevel level, const cha
                                });
 }
 
+Result EflSlService::RegisterPlugin(SlPluginMeta meta) {
+    if (!m_initSuccessful) {
+        return SERVICE_INIT_FAILED;
+    }
+
+    if (!(strnlen(meta.name, SL_PLUGIN_NAME_SIZE) < SL_PLUGIN_NAME_SIZE)) {
+        return INVALID_PLUGIN_NAME;
+    }
+
+    return nnServiceDispatchIn(&m_service, EFL_SL_CMD_REGISTER_PLUGIN, meta);
+}
+
+Result EflSlService::RegisterSharedMem(const SlPluginName name, SlPluginSharedMemInfo sharedMemInfo) {
+    if (!m_initSuccessful) {
+        return SERVICE_INIT_FAILED;
+    }
+
+    if (!(strnlen(name, SL_PLUGIN_NAME_SIZE) < SL_PLUGIN_NAME_SIZE)) {
+        return INVALID_PLUGIN_NAME;
+    }
+
+    auto in = EiffelSlRegisterSharedMemIn{{}, sharedMemInfo.size, sharedMemInfo.perm};
+    strcpy(in.name, name);
+    return nnServiceDispatchIn(&m_service, EFL_SL_CMD_REGISTER_SHARED_MEM, in, .in_num_handles = 1,
+                               .in_handles = {sharedMemInfo.handle});
+}
+
 }  // namespace skyline::efl

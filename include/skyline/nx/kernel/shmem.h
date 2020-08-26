@@ -7,7 +7,13 @@
  * allocates and owns its backing memory.
  */
 #pragma once
-#include "../types.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#include "skyline/nx/kernel/svc.h"
+#include "types.h"
 
 /// Shared memory information structure.
 typedef struct {
@@ -65,3 +71,7 @@ static inline void* shmemGetAddr(SharedMemory* s) { return s->map_addr; }
  * @return Result code.
  */
 Result shmemClose(SharedMemory* s);
+
+#ifdef __cplusplus
+}  // extern "C"
+#endif
