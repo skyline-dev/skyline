@@ -60,14 +60,10 @@ Result EflSlService::RegisterSharedMem(const SlPluginName name, SlPluginSharedMe
         return INVALID_PLUGIN_NAME;
     }
 
-    struct {
-        SlPluginName name;
-        SlPluginSharedMemInfo sharedMemInfo;
-    } in;
+    auto in = EiffelSlRegisterSharedMemIn{{}, sharedMemInfo.size, sharedMemInfo.perm};
     strcpy(in.name, name);
-    in.sharedMemInfo = sharedMemInfo;
-
-    return nnServiceDispatchIn(&m_service, EFL_SL_CMD_REGISTER_SHARED_MEM, in);
+    return nnServiceDispatchIn(&m_service, EFL_SL_CMD_REGISTER_SHARED_MEM, in, .in_num_handles = 1,
+                               .in_handles = {sharedMemInfo.handle});
 }
 
 }  // namespace skyline::efl
