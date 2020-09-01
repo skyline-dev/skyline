@@ -20,19 +20,18 @@ void exception_handler(nn::os::UserExceptionInfo* info) {
 }
 
 static skyline::utils::Task* after_romfs_task = new skyline::utils::Task{[]() {
-        // wait for ROM to be mounted
-        if (!nn::os::TimedWaitEvent(&skyline::utils::g_RomMountedEvent, nn::TimeSpan::FromSeconds(10))) {
-            skyline::logger::s_Instance->SendRawFormat("[ROM Waiter] Missed ROM mount event!");
-        }
+    // wait for ROM to be mounted
+    if (!nn::os::TimedWaitEvent(&skyline::utils::g_RomMountedEvent, nn::TimeSpan::FromSeconds(10))) {
+        skyline::logger::s_Instance->SendRawFormat("[ROM Waiter] Missed ROM mount event!");
+    }
 
-        // mount sd
-        Result rc = nn::fs::MountSdCardForDebug("sd");
-        skyline::logger::s_Instance->LogFormat("[skyline_main] Mounted SD (0x%x)", rc);
+    // mount sd
+    Result rc = nn::fs::MountSdCardForDebug("sd");
+    skyline::logger::s_Instance->LogFormat("[skyline_main] Mounted SD (0x%x)", rc);
 
-        // load plugins
-        skyline::plugin::Manager::LoadPlugins();
-
-    }};
+    // load plugins
+    skyline::plugin::Manager::LoadPlugins();
+}};
 
 void stub() {}
 
