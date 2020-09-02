@@ -19,6 +19,20 @@ void exception_handler(nn::os::UserExceptionInfo* info) {
     skyline::logger::s_Instance->LogFormat("PC: %" PRIx64 "\n", info->PC.x);
 }
 
+static skyline::utils::Task* after_romfs_task = new skyline::utils::Task{[]() {
+    // wait for ROM to be mounted
+    if (!nn::os::TimedWaitEvent(&skyline::utils::g_RomMountedEvent, nn::TimeSpan::FromSeconds(10))) {
+        skyline::logger::s_Instance->SendRawFormat("[ROM Waiter] Missed ROM mount event!");
+    }
+
+    // mount sd
+    Result rc = nn::fs::MountSdCardForDebug("sd");
+    skyline::logger::s_Instance->LogFormat("[skyline_main] Mounted SD (0x%x)", rc);
+
+    // load plugins
+    skyline::plugin::Manager::LoadPlugins();
+}};
+
 void stub() {}
 
 Result (*nnFsMountRomImpl)(char const*, void*, unsigned long);
@@ -28,6 +42,7 @@ Result handleNnFsMountRom(char const* path, void* buffer, unsigned long size) {
     skyline::logger::s_Instance->LogFormat("[handleNnFsMountRom] Mounted ROM (0x%x)", rc);
     skyline::utils::g_RomMountStr = std::string(path) + ":/";
     nn::os::SignalEvent(&skyline::utils::g_RomMountedEvent);
+    nn::os::WaitEvent(&after_romfs_task->completionEvent);
     return rc;
 }
 
@@ -67,21 +82,6 @@ void skyline_main() {
     // start task queue
     skyline::utils::SafeTaskQueue* taskQueue = new skyline::utils::SafeTaskQueue(100);
     taskQueue->startThread(20, 3, 0x4000);
-
-    skyline::utils::Task* after_romfs_task = new skyline::utils::Task{[]() {
-        // wait for ROM to be mounted
-        if (!nn::os::TimedWaitEvent(&skyline::utils::g_RomMountedEvent, nn::TimeSpan::FromSeconds(10))) {
-            skyline::logger::s_Instance->SendRawFormat("[ROM Waiter] Missed ROM mount event!");
-        }
-
-        // mount sd
-        Result rc = nn::fs::MountSdCardForDebug("sd");
-        skyline::logger::s_Instance->LogFormat("[skyline_main] Mounted SD (0x%x)", rc);
-
-        // load plugins
-        skyline::plugin::Manager::LoadPlugins();
-    }};
-
     taskQueue->push(new std::unique_ptr<skyline::utils::Task>(after_romfs_task));
 
     // TODO: experiment more with NVN
