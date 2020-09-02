@@ -42,7 +42,7 @@ Result handleNnFsMountRom(char const* path, void* buffer, unsigned long size) {
     skyline::logger::s_Instance->LogFormat("[handleNnFsMountRom] Mounted ROM (0x%x)", rc);
     skyline::utils::g_RomMountStr = std::string(path) + ":/";
     nn::os::SignalEvent(&skyline::utils::g_RomMountedEvent);
-    nn::os::TimedWaitEvent(&after_romfs_task->completionEvent, nn::TimeSpan::FromSeconds(60));
+    nn::os::WaitEvent(&after_romfs_task->completionEvent);
     return rc;
 }
 
