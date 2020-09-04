@@ -31,7 +31,7 @@ typedef struct {
  * @param size Size of the JIT buffer.
  * @return Result code.
  */
-Result jitCreate(Jit* j, size_t size);
+Result jitCreate(Jit* j, void* src_addr, size_t size);
 
 /**
  * @brief Transition a JIT buffer to have writable permission.

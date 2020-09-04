@@ -78,6 +78,8 @@ typedef void (*ThreadFunc)(void*);
 
 #define INVALID_HANDLE ((Handle)0)
 
+#define PAGE_SIZE 0x1000
+
 #ifndef ALIGN_UP
 #define ALIGN_UP(x, a) (((x) + ((a)-1)) & ~((a)-1))
 #endif

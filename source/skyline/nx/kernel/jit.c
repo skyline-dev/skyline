@@ -10,7 +10,7 @@
 #include "skyline/nx/runtime/env.h"
 #include "types.h"
 
-Result jitCreate(Jit* j, size_t size) {
+Result jitCreate(Jit* j, void* rx_addr, size_t size) {
     JitType type;
 
     // Use new jit primitive introduced in [4.0.0+], if available.
@@ -38,7 +38,7 @@ Result jitCreate(Jit* j, size_t size) {
     j->type = type;
     j->size = size;
     j->src_addr = src_addr;
-    j->rx_addr = virtmemReserve(j->size);
+    j->rx_addr = rx_addr != NULL ? rx_addr : virtmemReserve(j->size);
     j->handle = INVALID_HANDLE;
     j->is_executable = 0;
 
