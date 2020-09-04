@@ -33,6 +33,7 @@
 
 #include "nn/os.h"
 #include "skyline/inlinehook/And64InlineHook.hpp"
+#include "skyline/utils/cpputils.hpp"
 
 #define A64_MAX_INSTRUCTIONS 5
 #define A64_MAX_REFERENCES (A64_MAX_INSTRUCTIONS * 2)
@@ -40,7 +41,8 @@
 typedef uint32_t* __restrict* __restrict instruction;
 typedef struct {
     struct fix_info {
-        uint32_t* bp;
+        uint32_t* bprx;
+        uint32_t* bprw;
         uint32_t ls;  // left-shift counts
         uint32_t ad;  // & operand
     };
@@ -69,10 +71,12 @@ typedef struct {
         return current_idx;
     }
     inline void reset_current_ins(const intptr_t idx, uint32_t* __restrict outp) { this->dat[idx].insp = outp; }
-    void insert_fix_map(const intptr_t idx, uint32_t* bp, uint32_t ls = 0u, uint32_t ad = 0xffffffffu) {
+    void insert_fix_map(const intptr_t idx, uint32_t* bprw, uint32_t* bprx, uint32_t ls = 0u,
+                        uint32_t ad = 0xffffffffu) {
         for (auto& f : this->dat[idx].fmap) {
-            if (f.bp == NULL) {
-                f.bp = bp;
+            if (f.bprw == NULL) {
+                f.bprw = bprw;
+                f.bprx = bprx;
                 f.ls = ls;
                 f.ad = ad;
                 return;
@@ -82,10 +86,11 @@ typedef struct {
     }
     void process_fix_map(const intptr_t idx) {
         for (auto& f : this->dat[idx].fmap) {
-            if (f.bp == NULL) break;
-            *(f.bp) =
-                *(f.bp) | (((int32_t(this->dat[idx].ins - reinterpret_cast<int64_t>(f.bp)) >> 2) << f.ls) & f.ad);
-            f.bp = NULL;
+            if (f.bprw == NULL) break;
+            *(f.bprw) =
+                *(f.bprx) | (((int32_t(this->dat[idx].ins - reinterpret_cast<int64_t>(f.bprx)) >> 2) << f.ls) & f.ad);
+            f.bprw = NULL;
+            f.bprx = NULL;
         }
     }
 } context;
@@ -145,7 +150,7 @@ static bool __fix_branch_imm(instruction inprwp, instruction inprxp, instruction
                         new_pc_offset =
                             static_cast<int64_t>(ctxp->dat[ref_idx].ins - reinterpret_cast<int64_t>(*outprx)) >> 2;
                     } else {
-                        ctxp->insert_fix_map(ref_idx, *outprx, 0u, rmask);
+                        ctxp->insert_fix_map(ref_idx, *outprw, *outprx, 0u, rmask);
                         new_pc_offset = 0;
                     }  // if
                 }      // if
@@ -219,7 +224,7 @@ static bool __fix_cond_comp_test_branch(instruction inprwp, instruction inprxp, 
             if (ref_idx <= current_idx) {
                 new_pc_offset = static_cast<int64_t>(ctxp->dat[ref_idx].ins - reinterpret_cast<int64_t>(*outprx)) >> 2;
             } else {
-                ctxp->insert_fix_map(ref_idx, *outprx, lsb, ~lmask);
+                ctxp->insert_fix_map(ref_idx, *outprw, *outprx, lsb, ~lmask);
                 new_pc_offset = 0;
             }  // if
         }      // if
@@ -367,7 +372,7 @@ static bool __fix_pcreladdr(instruction inprwp, instruction inprxp, instruction 
                         new_pc_offset =
                             static_cast<int64_t>(ctxp->dat[ref_idx].ins - reinterpret_cast<int64_t>(*outprx));
                     } else {
-                        ctxp->insert_fix_map(ref_idx, *outprx, lsb, fmask);
+                        ctxp->insert_fix_map(ref_idx, *outprw, *outprx, lsb, fmask);
                         new_pc_offset = 0;
                     }  // if
                 }      // if
@@ -483,12 +488,15 @@ static void __fix_instructions(uint32_t* __restrict inprw, uint32_t* __restrict 
 
 //-------------------------------------------------------------------------
 
+extern const u64 inlineHandlerStart;
+extern const u64 inlineHandlerEnd;
+
 #define __attribute __attribute__
 #define aligned(x) __aligned__(x)
 #define __intval(p) reinterpret_cast<intptr_t>(p)
 #define __uintval(p) reinterpret_cast<uintptr_t>(p)
 #define __ptr(p) reinterpret_cast<void*>(p)
-#define __page_size 0x1000
+#define __page_size PAGE_SIZE
 #define __page_align(n) __align_up(static_cast<uintptr_t>(n), __page_size)
 #define __ptr_align(x) __ptr(__align_down(reinterpret_cast<uintptr_t>(x), __page_size))
 #define __align_up(x, n) (((x) + ((n)-1)) & ~((n)-1))
@@ -498,9 +506,21 @@ static void __fix_instructions(uint32_t* __restrict inprw, uint32_t* __restrict 
 #define __sync_cmpswap(p, v, n) __sync_bool_compare_and_swap(p, v, n)
 typedef uint32_t insns_t[A64_MAX_BACKUPS][A64_MAX_INSTRUCTIONS * 10u];
 
+constexpr size_t inline_hook_handler_size = 0x9C;  // correct if handler size changes
+struct PACKED inline_hook_entry {
+    char handler[inline_hook_handler_size];
+    void* callback;
+    void* trampoline;
+};
+
+constexpr size_t inline_hook_size = sizeof(inline_hook_entry);
+constexpr size_t inline_hook_count = 35'000;
+constexpr size_t inline_hook_pool_size = inline_hook_size * inline_hook_count;
+
 //-------------------------------------------------------------------------
 
 static Jit __insns_jit;
+static Jit __inline_hook_jit;
 static nn::os::MutexType hookMutex;
 
 //-------------------------------------------------------------------------
@@ -508,12 +528,30 @@ static nn::os::MutexType hookMutex;
 void A64HookInit() {
     nn::os::InitializeMutex(&hookMutex, false, 0);
 
-    Result rc = jitCreate(&__insns_jit, sizeof(insns_t));
-
+    // allocate normal hook JIT
+    Result rc = jitCreate(&__insns_jit, NULL, sizeof(insns_t));
+    R_ERRORONFAIL(rc);
     memset(__insns_jit.rw_addr, 0, __insns_jit.size);
-
     rc = jitTransitionToExecutable(&__insns_jit);
+    R_ERRORONFAIL(rc);
 
+    // search for applicable space for inline hook JIT
+    auto cur_searching_addr =
+        skyline::utils::g_MainTextAddr - inline_hook_pool_size;  // start searching from right before .text
+
+    MemoryInfo mem;
+    while (true) {
+        u32 page_info;
+        if (R_SUCCEEDED(svcQueryMemory(&mem, &page_info, cur_searching_addr)) && mem.type == MemType_Unmapped &&
+            mem.size >= ALIGN_UP(inline_hook_pool_size, PAGE_SIZE)) {
+            break;
+        }
+        cur_searching_addr -= PAGE_SIZE;
+    }
+
+    // allocate inline hook JIT
+    rc = jitCreate(&__inline_hook_jit, (void*)ALIGN_DOWN(mem.addr + mem.size - inline_hook_pool_size, PAGE_SIZE),
+                   inline_hook_pool_size);
     R_ERRORONFAIL(rc);
 }
 
@@ -553,6 +591,7 @@ void* A64HookFunctionV(void* const symbol, void* const replace, void* const rxtr
             if (rwx_size < count * 10u) {
                 skyline::logger::s_Instance->LogFormat(
                     "[And64InlineHook] rwx size is too small to hold %u bytes backup instructions!", count * 10u);
+                control.unclaim();
                 return NULL;
             }  // if
             __fix_instructions(original, (u32*)control.rx, count, rwtrampoline, rxtrampoline);
@@ -582,6 +621,7 @@ void* A64HookFunctionV(void* const symbol, void* const replace, void* const rxtr
             if (rwx_size < 1u * 10u) {
                 skyline::logger::s_Instance->LogFormat(
                     "[And64InlineHook] rwx size is too small to hold %u bytes backup instructions!", 1u * 10u);
+                control.unclaim();
                 return NULL;
             }  // if
             __fix_instructions(original, (u32*)control.rx, 1, rwtrampoline, rxtrampoline);
@@ -630,35 +670,44 @@ extern "C" void A64HookFunction(void* const symbol, void* const replace, void** 
     nn::os::UnlockMutex(&hookMutex);
 }
 
-extern const void* inlineHandlerStart;
-extern const void* inlineHandlerEnd;
+u64 inline_hook_curridx = 0;
 
 extern "C" void A64InlineHook(void* const symbol, void* const replace) {
     u64 start = (u64)&inlineHandlerStart;
     u64 end = (u64)&inlineHandlerEnd;
 
-    u64 handlerSize = end - start;
-    u64 totalHandlerSize = handlerSize + 0x10;  // hook + trampoline pointer
+    // make sure inline hook handler constexpr is correct
+    if (inline_hook_handler_size != end - start) R_ERRORONFAIL(-1);
 
-    Jit j;
-    jitCreate(&j, totalHandlerSize);
-    u64 rw = (u64)j.rw_addr;
+    // prepare to copy handler
+    jitTransitionToWritable(&__inline_hook_jit);
+    inline_hook_entry* rw_start = (inline_hook_entry*)__inline_hook_jit.rw_addr;
+    inline_hook_entry* rw = rw_start + inline_hook_curridx;
 
-    memset((void*)rw, 0, totalHandlerSize);
+    // copy handler
+    memcpy(rw->handler, (void*)start, inline_hook_handler_size);
 
-    memcpy((void*)rw, (void*)start, handlerSize);
+    // prepare to hook
+    jitTransitionToExecutable(&__inline_hook_jit);
+    inline_hook_entry* rx_start = (inline_hook_entry*)__inline_hook_jit.rx_addr;
+    inline_hook_entry* rx = rx_start + inline_hook_curridx;
 
-    jitTransitionToExecutable(&j);
-
+    // hook to call the handler
     void* trampoline;
-    A64HookFunction(symbol, j.rx_addr, &trampoline);
+    A64HookFunction(symbol, rx->handler, &trampoline);
 
-    jitTransitionToWritable(&j);
+    // write trampoline/callback to entry
+    jitTransitionToWritable(&__inline_hook_jit);
+    rw->callback = replace;
+    rw->trampoline = trampoline;
 
-    memcpy((void*)(rw + handlerSize), (void*)&replace, sizeof(void*));
-    memcpy((void*)(rw + handlerSize + 0x8), &trampoline, sizeof(void*));
+    // finalize, make handler executable
+    jitTransitionToExecutable(&__inline_hook_jit);
 
-    jitTransitionToExecutable(&j);
+    inline_hook_curridx++;
+
+    if (inline_hook_curridx > inline_hook_count)
+        skyline::logger::s_Instance->LogFormat("[A64InlineHook] inline hook pool exausted!");
 }
 
 #endif  // defined(__aarch64__)
