@@ -51,22 +51,32 @@
     add sp, sp, #0x100
 .endm
 
+
+CODE_BEGIN inlineHandlerImpl
+    armBackupRegisters
+
+    // branch and link to hook callback
+    mov x0, sp
+    ldr x16, [x17, #8]
+    blr x16
+
+    armRecoverRegisters
+
+    // branch to trampoline
+    ldr x16, [x17, #0x10]
+    br x16
+
+CODE_END
+
+
 .global inlineHandlerStart
 .global inlineHandlerEnd
 
 CODE_BEGIN inlineHandler
 inlineHandlerStart:
-    armBackupRegisters
-
-    mov x0, sp
-    ldr x17, inlineHandlerEnd
-    blr x17
-
-    armRecoverRegisters
-
-    // jump to trampoline
-    ldr x17, inlineHandlerEnd+8
-    br x17
+    adr x17, inlineHandlerEnd
+    ldr x16, [x17]
+    br x16
 
 CODE_END
 inlineHandlerEnd:

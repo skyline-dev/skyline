@@ -488,9 +488,6 @@ static void __fix_instructions(uint32_t* __restrict inprw, uint32_t* __restrict 
 
 //-------------------------------------------------------------------------
 
-extern const u64 inlineHandlerStart;
-extern const u64 inlineHandlerEnd;
-
 #define __attribute __attribute__
 #define aligned(x) __aligned__(x)
 #define __intval(p) reinterpret_cast<intptr_t>(p)
@@ -506,15 +503,16 @@ extern const u64 inlineHandlerEnd;
 #define __sync_cmpswap(p, v, n) __sync_bool_compare_and_swap(p, v, n)
 typedef uint32_t insns_t[A64_MAX_BACKUPS][A64_MAX_INSTRUCTIONS * 10u];
 
-constexpr size_t inline_hook_handler_size = 0x9C;  // correct if handler size changes
+constexpr size_t inline_hook_handler_size = 0xC;  // correct if handler size changes
 struct PACKED inline_hook_entry {
-    char handler[inline_hook_handler_size];
-    void* callback;
-    void* trampoline;
+    std::array<uint8_t, inline_hook_handler_size> handler;
+    const void* cur_handler;
+    const void* callback;
+    const void* trampoline;
 };
 
 constexpr size_t inline_hook_size = sizeof(inline_hook_entry);
-constexpr size_t inline_hook_count = 35'000;
+constexpr size_t inline_hook_count = 0x1000;
 constexpr size_t inline_hook_pool_size = inline_hook_size * inline_hook_count;
 
 //-------------------------------------------------------------------------
@@ -670,44 +668,51 @@ extern "C" void A64HookFunction(void* const symbol, void* const replace, void** 
     nn::os::UnlockMutex(&hookMutex);
 }
 
+extern const void (*inlineHandlerStart)(void);
+extern const void* inlineHandlerEnd;
+extern const void (*inlineHandlerImpl)(void);
+
 u64 inline_hook_curridx = 0;
 
-extern "C" void A64InlineHook(void* const symbol, void* const replace) {
-    u64 start = (u64)&inlineHandlerStart;
-    u64 end = (u64)&inlineHandlerEnd;
+extern "C" void A64InlineHook(void* const address, void* const callback) {
+    u64 handler_start_addr = (u64)&inlineHandlerStart;
+    u64 handler_end_addr = (u64)&inlineHandlerEnd;
 
     // make sure inline hook handler constexpr is correct
-    if (inline_hook_handler_size != end - start) R_ERRORONFAIL(-1);
+    if (inline_hook_handler_size != handler_end_addr - handler_start_addr) {
+        skyline::logger::s_Instance->LogFormat("[A64InlineHook] invalid handler size, mannual updating required");
+        R_ERRORONFAIL(MAKERESULT(Module_Skyline, SkylineError_InlineHookHandlerSizeInvalid));
+    }
 
-    // prepare to copy handler
-    jitTransitionToWritable(&__inline_hook_jit);
-    inline_hook_entry* rw_start = (inline_hook_entry*)__inline_hook_jit.rw_addr;
-    inline_hook_entry* rw = rw_start + inline_hook_curridx;
-
-    // copy handler
-    memcpy(rw->handler, (void*)start, inline_hook_handler_size);
+    // check pool availability
+    if (inline_hook_curridx >= inline_hook_count) {
+        skyline::logger::s_Instance->LogFormat("[A64InlineHook] inline hook pool exausted");
+        R_ERRORONFAIL(MAKERESULT(Module_Skyline, SkylineError_InlineHookPoolExhausted));
+    }
 
     // prepare to hook
     jitTransitionToExecutable(&__inline_hook_jit);
-    inline_hook_entry* rx_start = (inline_hook_entry*)__inline_hook_jit.rx_addr;
-    inline_hook_entry* rx = rx_start + inline_hook_curridx;
+    auto& rx_entries = *reinterpret_cast<std::array<inline_hook_entry, inline_hook_count>*>(__inline_hook_jit.rx_addr);
+    auto& rx = rx_entries[inline_hook_curridx];
 
     // hook to call the handler
     void* trampoline;
-    A64HookFunction(symbol, rx->handler, &trampoline);
+    A64HookFunction(address, &rx.handler, &trampoline);
 
-    // write trampoline/callback to entry
+    // populate handler entry
     jitTransitionToWritable(&__inline_hook_jit);
-    rw->callback = replace;
-    rw->trampoline = trampoline;
+    auto& rw_entries = *reinterpret_cast<std::array<inline_hook_entry, inline_hook_count>*>(__inline_hook_jit.rw_addr);
+    auto& rw = rw_entries[inline_hook_curridx];
+
+    memcpy(rw.handler.data(), (void*)handler_start_addr, inline_hook_handler_size);
+    rw.cur_handler = &inlineHandlerImpl;
+    rw.callback = callback;
+    rw.trampoline = trampoline;
 
     // finalize, make handler executable
     jitTransitionToExecutable(&__inline_hook_jit);
 
     inline_hook_curridx++;
-
-    if (inline_hook_curridx > inline_hook_count)
-        skyline::logger::s_Instance->LogFormat("[A64InlineHook] inline hook pool exausted!");
 }
 
 #endif  // defined(__aarch64__)
