@@ -40,6 +40,7 @@ enum {
     Module_HomebrewLoader = 347,
     Module_LibnxNvidia = 348,
     Module_LibnxBinder = 349,
+    Module_Skyline = 0x1A4,
 };
 
 /// Kernel error codes
@@ -176,4 +177,12 @@ enum {
     LibnxNvidiaError_SharedMemoryTooSmall,  ///< Maps to Nvidia: 0x1000
     LibnxNvidiaError_FileOperationFailed,   ///< Maps to Nvidia: 0x30003
     LibnxNvidiaError_IoctlFailed,           ///< Maps to Nvidia: 0x3000F
+};
+
+/// skyline error codes
+enum {
+    SkylineError_SlServiceInitFailed = 1,
+    SkylineError_InvalidPluginName,
+    SkylineError_InlineHookHandlerSizeInvalid,
+    SkylineError_InlineHookPoolExhausted,
 };
