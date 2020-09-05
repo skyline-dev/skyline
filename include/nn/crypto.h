@@ -18,7 +18,17 @@ namespace crypto {
     void DecryptAes128Ccm(void*, u64, void*, u64, void const*, u64, void const*, u64, void const*, u64, void const*,
                           u64, u64);
 
+    template <size_t T>
+    class AesEncryptor;
+
     namespace detail {
+
+        template <class T>
+        class CbcMacImpl {
+           public:
+            size_t Update(void const*, ulong);
+        };
+
         class Md5Impl {
            public:
             void Initialize();

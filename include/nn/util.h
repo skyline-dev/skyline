@@ -17,6 +17,27 @@ namespace util {
         u8 r, g, b, a;
     };
 
+    struct Float2 {
+        union {
+            float v[2];
+            struct {
+                float x;
+                float y;
+            };
+        };
+    };
+
+    struct Float3 {
+        union {
+            float v[3];
+            struct {
+                float x;
+                float y;
+                float z;
+            };
+        };
+    };
+
     enum CharacterEncodingResult { Success, BadLength, InvalidFormat };
 
     CharacterEncodingResult PickOutCharacterFromUtf8String(char*, char const** str);

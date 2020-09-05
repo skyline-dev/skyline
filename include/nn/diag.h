@@ -29,5 +29,7 @@ namespace diag {
     u64 GetRequiredBufferSizeForGetAllModuleInfo();
     s32 GetAllModuleInfo(nn::diag::ModuleInfo** out, void* buffer, u64 bufferSize);
     u64 GetSymbolSize(u64 addr);
+
+    int GetBacktrace(uintptr_t* pOutArray, int arrayCountMax);
 };  // namespace diag
 };  // namespace nn
