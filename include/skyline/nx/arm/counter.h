@@ -5,7 +5,7 @@
  * @copyright libnx Authors
  */
 #pragma once
-#include "../types.h"
+#include "../../../types.h"
 
 /**
  * @brief Gets the current system tick.

@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include "time.h"
 #include "types.h"
 #include "util.h"
 
@@ -78,14 +79,6 @@ namespace hid {
         CONTROLLER_HANDHELD = 0x20,
     } NpadId;
 
-    enum NpadStyle {
-        NpadStyleFullKey = BIT(0),
-        NpadStyleHandheld = BIT(1),
-        NpadStyleJoyDual = BIT(2),
-        NpadStyleJoyLeft = BIT(3),
-        NpadStyleJoyRight = BIT(4),
-    };
-
     struct NpadHandheldState {
         s64 updateCount;
         u64 Buttons;
@@ -97,10 +90,17 @@ namespace hid {
     };
     // Seems to be the same?
     struct NpadFullKeyState : NpadHandheldState {};
+    struct NpadJoyDualState : NpadHandheldState {};
+
     struct NpadStyleTag;
     struct NpadStyleSet {
         u32 flags;
     };
+    constexpr nn::hid::NpadStyleSet NpadStyleFullKey = {BIT(0)};
+    constexpr nn::hid::NpadStyleSet NpadStyleHandheld = {BIT(1)};
+    constexpr nn::hid::NpadStyleSet NpadStyleJoyDual = {BIT(2)};
+    constexpr nn::hid::NpadStyleSet NpadStyleJoyLeft = {BIT(3)};
+    constexpr nn::hid::NpadStyleSet NpadStyleJoyRight = {BIT(4)};
 
     struct ControllerSupportArg {
         u8 mMinPlayerCount;
@@ -192,12 +192,14 @@ namespace hid {
     void InitializeNpad();
     void SetSupportedNpadIdType(u32 const*, u64);
     void SetSupportedNpadStyleSet(nn::util::BitFlagSet<32, nn::hid::NpadStyleTag>);
-    void GetNpadStyleSet(u32 const&);
+    NpadStyleSet GetNpadStyleSet(u32 const&);
     // returns the number of states put into the array
     int GetNpadStates(nn::hid::NpadHandheldState* outArray, s32 count, u32 const& controllerID);
     int GetNpadStates(nn::hid::NpadFullKeyState* outArray, s32 count, u32 const& controllerID);
+    int GetNpadStates(nn::hid::NpadJoyDualState* outArray, s32 count, u32 const& controllerID);
     void GetNpadState(nn::hid::NpadHandheldState* out, u32 const& controllerID);
     void GetNpadState(nn::hid::NpadFullKeyState* out, u32 const& controllerID);
+    void GetNpadState(nn::hid::NpadJoyDualState* out, u32 const& controllerID);
     int GetGestureStates(GestureState* outArray, int count);
     int GetSixAxisSensorHandles(SixAxisSensorHandle* pOutValues, int count, u32 const& controllerID,
                                 NpadStyleSet style);
