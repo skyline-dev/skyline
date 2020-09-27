@@ -4,6 +4,7 @@
 
 #include "nn/crypto.h"
 #include "skyline/logger/TcpLogger.hpp"
+#include "skyline/utils/utils.h"
 
 namespace skyline {
 namespace plugin {
@@ -114,8 +115,7 @@ namespace plugin {
 
         // get our own program ID
         // TODO: dedicated util for this
-        u64 program_id;
-        svcGetInfo(&program_id, 18, INVALID_HANDLE, 0);
+        u64 program_id = get_program_id();
 
         // initialize nrr header
         auto nrrHeader = reinterpret_cast<nn::ro::NrrHeader*>(m_nrrBuffer.get());

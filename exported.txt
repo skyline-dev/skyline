@@ -7,6 +7,7 @@
         A64HookFunction;
         A64InlineHook;
         sky_memcpy;
+        get_program_id;
         
     local: *;
 };  

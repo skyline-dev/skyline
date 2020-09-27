@@ -17,6 +17,7 @@ u64 memGetMapAddr(u64 addr);
 u64 memNextMap(u64);
 u64 memNextMapOfType(u64, u32);
 u64 memNextMapOfPerm(u64, u32);
+u64 get_program_id();
 
 void inlineHandler();
 
