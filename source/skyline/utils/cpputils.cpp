@@ -7,8 +7,6 @@ namespace skyline {
 
 std::string utils::g_RomMountStr = "rom:/";
 
-nn::os::EventType utils::g_RomMountedEvent;
-
 u64 utils::g_MainTextAddr;
 u64 utils::g_MainRodataAddr;
 u64 utils::g_MainDataAddr;
