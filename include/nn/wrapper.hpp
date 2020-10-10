@@ -23,3 +23,4 @@
 #include "time.h"
 #include "util.h"
 #include "vi.h"
+#include "err.h"
