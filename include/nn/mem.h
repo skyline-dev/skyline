@@ -18,6 +18,7 @@ namespace mem {
         void Finalize();
         void* Reallocate(void* address, u64 newSize);
         void* Allocate(u64 size);
+        void* Allocate(u64 size, u64 alignment);
         void Free(void* address);
         void Dump();
 
