@@ -4,7 +4,7 @@
 #include "diag.h"
 #include "friends.h"
 #include "fs.h"
-#include "hid.h"
+#include "hid.hpp"
 #include "image.h"
 #include "init.h"
 #include "mem.h"
