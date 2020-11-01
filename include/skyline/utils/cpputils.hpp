@@ -16,8 +16,6 @@ enum region : u8 { Text, Rodata, Data, Bss, Heap };
 
 extern std::string g_RomMountStr;
 
-extern nn::os::EventType g_RomMountedEvent;
-
 extern u64 g_MainTextAddr;
 extern u64 g_MainRodataAddr;
 extern u64 g_MainDataAddr;
