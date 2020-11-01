@@ -7,6 +7,8 @@
 #include "alloc.h"
 #include "mem.h"
 #include "nn/crypto.h"
+#include "nn/diag.h"
+#include "nn/err.h"
 #include "nn/fs.h"
 #include "nn/nn.h"
 #include "nn/oe.h"

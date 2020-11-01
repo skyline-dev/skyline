@@ -46,6 +46,22 @@ Result handleNnFsMountRom(char const* path, void* buffer, unsigned long size) {
     return rc;
 }
 
+Result handleNnDiagDetailAbortImpl(char const* str1, char const* str2, char const* str3, s32 code) {
+    const char* fmt_str = "HOS is aborting with:\n%s\n%s\n%s\nCode: 0x%x";
+    size_t len = snprintf(NULL, 0, fmt_str, str1, str2, str3);
+    char* ptr = new char[len + 2];
+    memset(ptr, 0, len + 2);
+    snprintf(ptr, len + 1, fmt_str, str1, str2, str3);
+    ptr[len] = '\0';
+    skyline::logger::s_Instance->LogFormat(ptr);
+    nn::err::ApplicationErrorArg* error =
+        new nn::err::ApplicationErrorArg(69, "The software has closed due to an error.", ptr,
+                                         nn::settings::LanguageCode::Make(nn::settings::Language::Language_English));
+
+    nn::err::ShowApplicationError(*error);
+    return 0;
+}
+
 void skyline_main() {
     // populate our own process handle
     Handle h;
@@ -63,6 +79,11 @@ void skyline_main() {
     // override exception handler to dump info
     nn::os::SetUserExceptionHandler(exception_handler, exception_handler_stack, sizeof(exception_handler_stack),
                                     &exception_info);
+
+    // hook abort to get crash info
+    void (*AbortImpl)(char const*, char const*, char const*, s32);
+    AbortImpl = nn::diag::detail::AbortImpl;
+    A64HookFunction(reinterpret_cast<void*>(AbortImpl), reinterpret_cast<void*>(handleNnDiagDetailAbortImpl), NULL);
 
     // hook to prevent the game from double mounting romfs
     A64HookFunction(reinterpret_cast<void*>(nn::fs::MountRom), reinterpret_cast<void*>(handleNnFsMountRom),
