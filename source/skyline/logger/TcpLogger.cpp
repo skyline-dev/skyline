@@ -12,7 +12,9 @@ namespace skyline::logger {
 int g_tcpSocket;
 bool g_loggerInit = false;
 
-void stub(){};
+Result stub(){
+    return 0;
+};
 
 void TcpLogger::Initialize() {
     const size_t poolSize = 0x100000;
