@@ -46,20 +46,25 @@ Result handleNnFsMountRom(char const* path, void* buffer, unsigned long size) {
     return rc;
 }
 
-Result handleNnDiagDetailAbortImpl(char const* str1, char const* str2, char const* str3, s32 code) {
-    const char* fmt_str = "HOS is aborting with:\n%s\n%s\n%s\nCode: 0x%x";
-    size_t len = snprintf(NULL, 0, fmt_str, str1, str2, str3);
-    char* ptr = new char[len + 2];
-    memset(ptr, 0, len + 2);
-    snprintf(ptr, len + 1, fmt_str, str1, str2, str3);
-    ptr[len] = '\0';
-    skyline::logger::s_Instance->LogFormat(ptr);
-    nn::err::ApplicationErrorArg* error =
-        new nn::err::ApplicationErrorArg(69, "The software has closed due to an error.", ptr,
-                                         nn::settings::LanguageCode::Make(nn::settings::Language::Language_English));
+void (*VAbortImpl)(char const*, char const*, char const*, int, Result const*, nn::os::UserExceptionInfo const*, char const*, va_list args);
+void handleNnDiagDetailVAbortImpl(char const* str1, char const* str2, char const* str3, int int1, Result const* code, nn::os::UserExceptionInfo const* ExceptionInfo, char const* fmt, va_list args) {
+    int len = vsnprintf(nullptr, 0, fmt, args);
+    char* fmt_info = new char[len + 1];
+    vsprintf(fmt_info, fmt, args);
 
+    const char* fmt_str = "%s\n%s\n%s\n%d\nError: 0x%x\n%s";
+    len = snprintf(nullptr, 0, fmt_str, str1, str2, str3, int1, *code, fmt_info);
+    char* report = new char[len + 1];
+    sprintf(report, fmt_str, str1, str2, str3, int1, *code, fmt_info);
+
+    skyline::logger::s_Instance->LogFormat("%s", report);
+    nn::err::ApplicationErrorArg* error =
+        new nn::err::ApplicationErrorArg(69, "The software is aborting.", report,
+                                         nn::settings::LanguageCode::Make(nn::settings::Language::Language_English));
     nn::err::ShowApplicationError(*error);
-    return 0;
+    delete[] report;
+    delete[] fmt_info;
+    VAbortImpl(str1, str2, str3, int1, code, ExceptionInfo, fmt, args);
 }
 
 void skyline_main() {
@@ -80,11 +85,6 @@ void skyline_main() {
     nn::os::SetUserExceptionHandler(exception_handler, exception_handler_stack, sizeof(exception_handler_stack),
                                     &exception_info);
 
-    // hook abort to get crash info
-    void (*AbortImpl)(char const*, char const*, char const*, s32);
-    AbortImpl = nn::diag::detail::AbortImpl;
-    A64HookFunction(reinterpret_cast<void*>(AbortImpl), reinterpret_cast<void*>(handleNnDiagDetailAbortImpl), NULL);
-
     // hook to prevent the game from double mounting romfs
     A64HookFunction(reinterpret_cast<void*>(nn::fs::MountRom), reinterpret_cast<void*>(handleNnFsMountRom),
                     (void**)&nnFsMountRomImpl);
@@ -92,6 +92,11 @@ void skyline_main() {
     // manually init nn::ro ourselves, then stub it so the game doesn't try again
     nn::ro::Initialize();
     A64HookFunction(reinterpret_cast<void*>(nn::ro::Initialize), reinterpret_cast<void*>(stub), NULL);
+
+    // hook abort to get crash info
+    uintptr_t VAbort_ptr = 0;
+    nn::ro::LookupSymbol(&VAbort_ptr, "_ZN2nn4diag6detail10VAbortImplEPKcS3_S3_iPKNS_6ResultEPKNS_2os17UserExceptionInfoES3_St9__va_list");
+    A64HookFunction(reinterpret_cast<void*>(VAbort_ptr), reinterpret_cast<void*>(handleNnDiagDetailVAbortImpl), (void**)&VAbortImpl);
 
     // mount rom
     u64 cache_size = 0;
