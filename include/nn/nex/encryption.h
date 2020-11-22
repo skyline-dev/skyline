@@ -8,7 +8,6 @@
 #include "RootObject.h"
 #include "buffer.h"
 #include "key.h"
-#include "sead/critical.h"
 
 namespace nn {
 namespace nex {

@@ -5,7 +5,6 @@
 
 #pragma once
 
-#include "sead/runtime.h"
 #include "types.h"
 
 namespace nn {
@@ -20,7 +19,7 @@ namespace ui2d {
 
         virtual ~Pane();
 
-        virtual sead::RuntimeTypeInfo::Interface* GetRuntimeTypeInfo() const;
+        // virtual sead::RuntimeTypeInfo::Interface* GetRuntimeTypeInfo() const;
         virtual s32 GetVertexColor(s32);
         virtual u8 GetColorElement(s32);
         virtual void SetColorElement(u32, u8);

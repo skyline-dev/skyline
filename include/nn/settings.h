@@ -1,5 +1,7 @@
 #pragma once
 
+#include <types.h>
+
 namespace nn {
 namespace settings {
     namespace system {

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "BindFuncTable.h"
+#include <BindFuncTable.h>
 
 namespace nn {
 namespace g3d {
