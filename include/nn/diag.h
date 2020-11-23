@@ -6,6 +6,7 @@
 #pragma once
 
 #include "types.h"
+#include "os.hpp"
 
 namespace nn {
 namespace diag {
@@ -21,7 +22,7 @@ namespace diag {
         // LOG
         void LogImpl(nn::diag::LogMetaData const&, char const*, ...);
         void AbortImpl(char const*, char const*, char const*, s32);
-        void AbortImpl(char const*, char const*, char const*, int, Result);
+        void VAbortImpl(char const*, char const*, char const*, int, Result const*, ::nn::os::UserExceptionInfo*, char const* fmt, va_list args);
     };  // namespace detail
 
     // MODULE / SYMBOL
