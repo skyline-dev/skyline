@@ -17,7 +17,7 @@ Result stub(){
 };
 
 void TcpLogger::Initialize() {
-    const size_t poolSize = 0x100000;
+    const size_t poolSize = 0x600000;
     void* socketPool = memalign(0x4000, poolSize);
 
     Result (*nnSocketInitalizeImpl)(void*, ulong, ulong, int);
