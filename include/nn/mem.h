@@ -26,6 +26,7 @@ namespace mem {
         bool mIsEnabledThreadCache;  // _1
         u16 _2;
         u64* mAllocAddr;  // _4
+        u8 _12[20];
     };
 };  // namespace mem
 };  // namespace nn
