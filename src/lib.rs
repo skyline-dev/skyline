@@ -1,9 +1,14 @@
 #![feature(proc_macro_hygiene)]
 
+extern {
+    fn skyline_init();
+}
+
 skyline::set_module_name!("skyline");
 
 fn main() {
-    println!("Test");
+    println!("Trying to call skyline_init");
+    unsafe { skyline_init(); }
 }
 
 #[no_mangle]

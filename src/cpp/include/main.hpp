@@ -3,7 +3,6 @@
 #include <map>
 #include <string>
 
-#include "ModuleObject.hpp"
 #include "alloc.h"
 #include "mem.h"
 #include "nn/crypto.h"
