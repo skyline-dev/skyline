@@ -5,15 +5,18 @@ use std::path::{
     PathBuf
 };
 
-// TODO: Make it recursive
 fn get_cpp_files<P: AsRef<Path>>(dir: P) -> Vec<PathBuf> {
-    fs::read_dir(dir).unwrap().filter_map(|entry| {
-        let path = entry.unwrap().path();
+    fs::read_dir(dir).unwrap().flat_map(|entry| {
+        let entry = entry.unwrap();
+        let path = entry.path();
 
-        if !path.is_dir() {
-            Some(path)
+        if entry.file_type().unwrap().is_file() {
+            match path.extension().unwrap().to_string_lossy().into_owned().as_ref() {
+                "c" | "cpp" | "s" => Vec::from([path]).into_iter(),
+                _ => Vec::from([]).into_iter(),
+            }
         } else {
-            None
+            get_cpp_files(path).into_iter()
         }
     }).collect()
 }
@@ -27,10 +30,15 @@ fn main() {
     let dkp_headers_path = Path::new("/opt/devkitpro/libnx/include");
 
     println!("cargo:rerun-if-changed=build.rs");
-    println!("cargo:rerun-if-changed=src/cpp/source/main.cpp");
+    let source_files = get_cpp_files("src/cpp/source/");
+    for file in &source_files {
+        println!("cargo:rerun-if-changed={}", file.display());
+    }
     // Needed to find libstdc++
     println!("cargo:rustc-link-search=/opt/devkitpro/devkitA64/aarch64-none-elf/lib");
     println!("cargo:rustc-link-search=/opt/devkitpro/devkitA64/lib/gcc/aarch64-none-elf/10.2.0");
+
+    //panic!("{:?}", get_cpp_files("src/cpp/source/"));
 
     cc::Build::new()
         .compiler("/opt/devkitpro/devkitA64/bin/aarch64-none-elf-g++")
@@ -60,17 +68,7 @@ fn main() {
         //.flag("-lgcc")
         .flag("-u malloc")
         // CPP
-        .files(get_cpp_files("src/cpp/source/"))
-        .files(get_cpp_files("src/cpp/source/skyline/"))
-        .files(get_cpp_files("src/cpp/source/skyline/efl"))
-        .files(get_cpp_files("src/cpp/source/skyline/inlinehook"))
-        .files(get_cpp_files("src/cpp/source/skyline/logger"))
-        .files(get_cpp_files("src/cpp/source/skyline/nx/kernel"))
-        .files(get_cpp_files("src/cpp/source/skyline/nx/runtime"))
-        .files(get_cpp_files("src/cpp/source/skyline/nx/sf"))
-        .files(get_cpp_files("src/cpp/source/skyline/plugin"))
-        .files(get_cpp_files("src/cpp/source/skyline/utils"))
-        .files(get_cpp_files("src/cpp/source/nvn/"))
+        .files(source_files)
         // HEADERS
         .include(headers_path)
         .include(efl_headers_path)
