@@ -1,5 +1,4 @@
 use std::fs;
-use std::env;
 
 use std::path::{
     Path,
@@ -31,11 +30,13 @@ fn main() {
     println!("cargo:rerun-if-changed=src/cpp/source/main.cpp");
     // Needed to find libstdc++
     println!("cargo:rustc-link-search=/opt/devkitpro/devkitA64/aarch64-none-elf/lib");
+    println!("cargo:rustc-link-search=/opt/devkitpro/devkitA64/lib/gcc/aarch64-none-elf/10.2.0");
 
     cc::Build::new()
         .compiler("/opt/devkitpro/devkitA64/bin/aarch64-none-elf-g++")
         .cpp(true)
-        .cpp_link_stdlib("stdc++")
+        //.cpp_link_stdlib("stdc++")
+        .cpp_link_stdlib("gcc")
         .no_default_flags(true)
         .pic(true)
         .warnings(false)
@@ -56,7 +57,7 @@ fn main() {
         // LDFLAGS
         .flag("-export-dynamic")
         .flag("-nodefaultlibs")
-        .flag("-lgcc")
+        //.flag("-lgcc")
         .flag("-u malloc")
         // CPP
         .files(get_cpp_files("src/cpp/source/"))
