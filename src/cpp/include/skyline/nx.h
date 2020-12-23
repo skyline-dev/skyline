@@ -1,0 +1,46 @@
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#include "skyline/nx/arm/atomics.h"
+#include "skyline/nx/arm/cache.h"
+#include "skyline/nx/arm/counter.h"
+#include "skyline/nx/arm/thread_context.h"
+#include "skyline/nx/arm/tls.h"
+#include "skyline/nx/kernel/barrier.h"
+#include "skyline/nx/kernel/condvar.h"
+#include "skyline/nx/kernel/detect.h"
+#include "skyline/nx/kernel/event.h"
+#include "skyline/nx/kernel/jit.h"
+#include "skyline/nx/kernel/mutex.h"
+#include "skyline/nx/kernel/random.h"
+#include "skyline/nx/kernel/rwlock.h"
+#include "skyline/nx/kernel/semaphore.h"
+#include "skyline/nx/kernel/shmem.h"
+#include "skyline/nx/kernel/svc.h"
+#include "skyline/nx/kernel/thread.h"
+#include "skyline/nx/kernel/tmem.h"
+#include "skyline/nx/kernel/uevent.h"
+#include "skyline/nx/kernel/utimer.h"
+#include "skyline/nx/kernel/virtmem.h"
+#include "skyline/nx/kernel/wait.h"
+#include "skyline/nx/runtime/devices/console.h"
+#include "skyline/nx/runtime/devices/fs_dev.h"
+#include "skyline/nx/runtime/devices/romfs_dev.h"
+#include "skyline/nx/runtime/devices/socket.h"
+#include "skyline/nx/runtime/devices/usb_comms.h"
+#include "skyline/nx/runtime/util/utf.h"
+#include "skyline/nx/runtime/env.h"
+#include "skyline/nx/runtime/hosversion.h"
+#include "skyline/nx/runtime/nxlink.h"
+#include "skyline/nx/runtime/resolver.h"
+#include "skyline/nx/sf/cmif.h"
+#include "skyline/nx/sf/hipc.h"
+#include "skyline/nx/sf/service.h"
+#include "skyline/nx/sf/sessionmgr.h"
+#include "skyline/nx/result.h"
+#include "skyline/nx/smc.h"
+
+#ifdef __cplusplus
+};
+#endif

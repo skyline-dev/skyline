@@ -1,7 +1,6 @@
 #include "skyline/nx/kernel/virtmem.h"
 
 #include "skyline/nx/kernel/mutex.h"
-#include "skyline/nx/kernel/svc.h"
 #include "skyline/nx/result.h"
 #include "types.h"
 

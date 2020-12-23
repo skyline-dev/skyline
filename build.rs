@@ -71,6 +71,7 @@ fn main() {
         .files(source_files)
         // HEADERS
         .include(headers_path)
+        .include(Path::new("src/cpp/include/skyline/utils/"))
         .include(efl_headers_path)
         .include(dkp_headers_path)
         // internal.h
