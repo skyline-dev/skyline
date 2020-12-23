@@ -37,8 +37,8 @@ fn main() {
     // Needed to find libstdc++
     println!("cargo:rustc-link-search=/opt/devkitpro/devkitA64/aarch64-none-elf/lib");
     println!("cargo:rustc-link-search=/opt/devkitpro/devkitA64/lib/gcc/aarch64-none-elf/10.2.0");
-
-    //panic!("{:?}", get_cpp_files("src/cpp/source/"));
+    // Linker flags
+    println!("cargo:rustc-cdylib-link-args=--shared --export-dynamic -nodefaultlibs");
 
     cc::Build::new()
         .compiler("/opt/devkitpro/devkitA64/bin/aarch64-none-elf-g++")
@@ -46,7 +46,6 @@ fn main() {
         //.cpp_link_stdlib("stdc++")
         .cpp_link_stdlib("gcc")
         .no_default_flags(true)
-        .pic(true)
         .warnings(false)
         // CFLAGS
         .flag("-fPIC")
@@ -62,15 +61,16 @@ fn main() {
         .flag("-fno-unwind-tables")
         .flag("-enable-libstdcxx-allocator=new")
         .flag("-fpermissive")
-        // LDFLAGS
-        .flag("-export-dynamic")
-        .flag("-nodefaultlibs")
+        // LIBS
         //.flag("-lgcc")
+        //.flag("-lstdc++")
         .flag("-u malloc")
+        .flag("-lc")
         // CPP
         .files(source_files)
         // HEADERS
         .include(headers_path)
+        //.include(Path::new("src/cpp/include/nn/"))
         .include(Path::new("src/cpp/include/skyline/utils/"))
         .include(efl_headers_path)
         .include(dkp_headers_path)

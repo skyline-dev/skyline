@@ -71,8 +71,8 @@ void skyline_main() {
     // populate our own process handle
     Handle h;
     skyline::utils::Ipc::getOwnProcessHandle(&h);
-    envSetOwnProcessHandle(h);
-    svcBreak(0x69, 0,0);
+    //envSetOwnProcessHandle(h);
+    //svcBreak(0x69, 0,0);
 
     // init hooking setup
     //A64HookInit();
