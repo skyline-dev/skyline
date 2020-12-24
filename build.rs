@@ -34,17 +34,23 @@ fn main() {
     for file in &source_files {
         println!("cargo:rerun-if-changed={}", file.display());
     }
-    // Needed to find libstdc++
-    println!("cargo:rustc-link-search=/opt/devkitpro/devkitA64/aarch64-none-elf/lib");
+    // Needed to find stdc++ and gcc
+    println!("cargo:rustc-link-search=/opt/devkitpro/devkitA64/aarch64-none-elf/lib/pic");
     println!("cargo:rustc-link-search=/opt/devkitpro/devkitA64/lib/gcc/aarch64-none-elf/10.2.0");
+    // Static libraries
+    println!("cargo:rustc-link-lib=static=stdc++");
+    println!("cargo:rustc-link-lib=static=gcc");
+
     // Linker flags
-    println!("cargo:rustc-cdylib-link-args=--shared --export-dynamic -nodefaultlibs");
+    //println!("cargo:rustc-cdylib-link-args=--shared --export-dynamic -nodefaultlibs");
 
     cc::Build::new()
         .compiler("/opt/devkitpro/devkitA64/bin/aarch64-none-elf-g++")
         .cpp(true)
-        //.cpp_link_stdlib("stdc++")
-        .cpp_link_stdlib("gcc")
+        // .cpp_link_stdlib("stdc++")
+        // .cpp_link_stdlib("gcc")
+        .shared_flag(true)
+        .static_flag(true)
         .no_default_flags(true)
         .warnings(false)
         // CFLAGS
@@ -52,7 +58,7 @@ fn main() {
         .flag("-g")
         .flag("-Wall")
         .flag("-ffunction-sections")
-        //.flag("-D__SWITCH__")
+        .define("__SWITCH__", None)
         // CXXFLAGS
         .flag("-fno-rtti")
         .flag("-fomit-frame-pointer")
@@ -61,17 +67,14 @@ fn main() {
         .flag("-fno-unwind-tables")
         .flag("-enable-libstdcxx-allocator=new")
         .flag("-fpermissive")
+        //.flag("-v")
         // LIBS
-        //.flag("-lgcc")
-        //.flag("-lstdc++")
         .flag("-u malloc")
-        .flag("-lc")
         // CPP
         .files(source_files)
         // HEADERS
         .include(headers_path)
-        //.include(Path::new("src/cpp/include/nn/"))
-        .include(Path::new("src/cpp/include/skyline/utils/"))
+        //.include(Path::new("src/cpp/include/skyline/utils/"))
         .include(efl_headers_path)
         .include(dkp_headers_path)
         // internal.h

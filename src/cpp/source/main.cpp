@@ -71,36 +71,36 @@ void skyline_main() {
     // populate our own process handle
     Handle h;
     skyline::utils::Ipc::getOwnProcessHandle(&h);
-    //envSetOwnProcessHandle(h);
+    envSetOwnProcessHandle(h);
     //svcBreak(0x69, 0,0);
 
     // init hooking setup
-    //A64HookInit();
+    A64HookInit();
 
     // initialize logger
-    /*skyline::logger::s_Instance = new skyline::logger::TcpLogger();
+    skyline::logger::s_Instance = new skyline::logger::TcpLogger();
     skyline::logger::s_Instance->Log("[skyline_main] Begining initialization.\n");
-    skyline::logger::s_Instance->StartThread();*/
+    skyline::logger::s_Instance->StartThread();
 
     // override exception handler to dump info
-    /*nn::os::SetUserExceptionHandler(exception_handler, exception_handler_stack, sizeof(exception_handler_stack),
-                                    &exception_info);*/
+    nn::os::SetUserExceptionHandler(exception_handler, exception_handler_stack, sizeof(exception_handler_stack),
+                                    &exception_info);
 
     // hook to prevent the game from double mounting romfs
-    /*A64HookFunction(reinterpret_cast<void*>(nn::fs::MountRom), reinterpret_cast<void*>(handleNnFsMountRom),
-                    (void**)&nnFsMountRomImpl);*/
+    A64HookFunction(reinterpret_cast<void*>(nn::fs::MountRom), reinterpret_cast<void*>(handleNnFsMountRom),
+                    (void**)&nnFsMountRomImpl);
 
     // manually init nn::ro ourselves, then stub it so the game doesn't try again
-    /*nn::ro::Initialize();
-    A64HookFunction(reinterpret_cast<void*>(nn::ro::Initialize), reinterpret_cast<void*>(stub), NULL);*/
+    nn::ro::Initialize();
+    A64HookFunction(reinterpret_cast<void*>(nn::ro::Initialize), reinterpret_cast<void*>(stub), NULL);
 
     // hook abort to get crash info
-    /*uintptr_t VAbort_ptr = 0;
+    uintptr_t VAbort_ptr = 0;
     nn::ro::LookupSymbol(&VAbort_ptr, "_ZN2nn4diag6detail10VAbortImplEPKcS3_S3_iPKNS_6ResultEPKNS_2os17UserExceptionInfoES3_St9__va_list");
-    A64HookFunction(reinterpret_cast<void*>(VAbort_ptr), reinterpret_cast<void*>(handleNnDiagDetailVAbortImpl), (void**)&VAbortImpl);*/
+    A64HookFunction(reinterpret_cast<void*>(VAbort_ptr), reinterpret_cast<void*>(handleNnDiagDetailVAbortImpl), (void**)&VAbortImpl);
 
     // mount rom
-    /*
+    
     u64 cache_size = 0;
     Result rc;
     rc = nn::fs::QueryMountRomCacheSize(&cache_size);
@@ -114,18 +114,18 @@ void skyline_main() {
     }
     else {
         skyline::logger::s_Instance->LogFormat("[skyline_main] QueryMountRomCacheSize failed (0x%x)", rc);
-    }*/
+    }
 
-    /*skyline::logger::s_Instance->LogFormat("[skyline_main] text: 0x%" PRIx64 " | rodata: 0x%" PRIx64
+    skyline::logger::s_Instance->LogFormat("[skyline_main] text: 0x%" PRIx64 " | rodata: 0x%" PRIx64
                                            " | data: 0x%" PRIx64 " | bss: 0x%" PRIx64 " | heap: 0x%" PRIx64,
                                            skyline::utils::g_MainTextAddr, skyline::utils::g_MainRodataAddr,
                                            skyline::utils::g_MainDataAddr, skyline::utils::g_MainBssAddr,
-                                           skyline::utils::g_MainHeapAddr);*/
+                                           skyline::utils::g_MainHeapAddr);
 
     // start task queue
-    /*skyline::utils::SafeTaskQueue* taskQueue = new skyline::utils::SafeTaskQueue(100);
+    skyline::utils::SafeTaskQueue* taskQueue = new skyline::utils::SafeTaskQueue(100);
     taskQueue->startThread(20, 3, 0x4000);
-    taskQueue->push(new std::unique_ptr<skyline::utils::Task>(after_romfs_task));*/
+    taskQueue->push(new std::unique_ptr<skyline::utils::Task>(after_romfs_task));
 
     // TODO: experiment more with NVN
     /*nvnInit(NULL);
