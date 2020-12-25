@@ -1,8 +1,8 @@
 use crate::pointer_iter::StartEndArrayIterator;
 
-type PreInitFn = &'static extern "C" fn();
-type InitFn = &'static extern "C" fn();
-type FiniFn = &'static extern "C" fn();
+type PreInitFn = extern "C" fn();
+type InitFn = extern "C" fn();
+type FiniFn = extern "C" fn();
 
 extern "C" {
     static __preinit_array_start__: PreInitFn;
@@ -17,11 +17,11 @@ extern "C" {
 
 #[no_mangle]
 unsafe extern "C" fn __custom_init() {
-    for preinit_func in StartEndArrayIterator::new(__preinit_array_start__, __preinit_array_end__) {
+    for preinit_func in StartEndArrayIterator::new(&__preinit_array_start__, &__preinit_array_end__) {
         preinit_func();
     }
     
-    for init_func in StartEndArrayIterator::new(__init_array_start__, __init_array_end__) {
+    for init_func in StartEndArrayIterator::new(&__init_array_start__, &__init_array_end__) {
         init_func();
     }
 
@@ -30,7 +30,7 @@ unsafe extern "C" fn __custom_init() {
 
 #[no_mangle]
 unsafe extern "C" fn __custom_fini() {
-    for fini_func in StartEndArrayIterator::new(__fini_array_start__, __fini_array_end__) {
+    for fini_func in StartEndArrayIterator::new(&__fini_array_start__, &__fini_array_end__) {
         fini_func();
     }
 }
