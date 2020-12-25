@@ -7,6 +7,10 @@
 #include "../arm/thread_context.h"
 #include "types.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /// Pseudo handle for the current process.
 #define CUR_PROCESS_HANDLE 0xFFFF8001
 
@@ -1245,3 +1249,8 @@ Result svcSetResourceLimitLimitValue(Handle reslimit, LimitableResource which, u
 u64 svcCallSecureMonitor(SecmonArgs* regs);
 
 ///@}
+
+
+#ifdef __cplusplus
+}
+#endif

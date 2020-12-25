@@ -7,6 +7,10 @@
 #pragma once
 #include "types.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /// Structure representing an entry in the homebrew environment configuration.
 typedef struct {
     u32 Key;       ///< Type of entry
@@ -111,3 +115,7 @@ bool envHasRandomSeed(void);
  * @param out Pointer to a u64[2] buffer which will contain the random seed on return.
  */
 void envGetRandomSeed(u64 out[2]);
+
+#ifdef __cplusplus
+}
+#endif

@@ -7,6 +7,10 @@
 #pragma once
 #include "types.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * @brief Performs a data cache flush on the specified buffer.
  * @param addr Address of the buffer.
@@ -43,3 +47,7 @@ void armICacheInvalidate(void* addr, size_t size);
  * system register).
  */
 void armDCacheZero(void* addr, size_t size);
+
+#ifdef __cplusplus
+}
+#endif

@@ -29,11 +29,12 @@
 #pragma once
 #define A64_MAX_BACKUPS 256 * 2
 
+#include "../nx/kernel/jit.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include "../nx/kernel/jit.h"
 #include "../nx/result.h"
 #include "../utils/utils.h"
 #include "alloc.h"
