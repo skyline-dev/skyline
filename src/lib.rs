@@ -1,6 +1,9 @@
 #![feature(proc_macro_hygiene)]
 
-extern {
+mod init;
+mod pointer_iter;
+
+extern "C" {
     fn skyline_init();
 }
 
@@ -10,11 +13,3 @@ fn main() {
     println!("Trying to call skyline_init");
     unsafe { skyline_init(); }
 }
-
-#[no_mangle]
-extern "C" fn __custom_init() {
-    main();
-}
-
-#[no_mangle]
-extern "C" fn __custom_fini() {}
