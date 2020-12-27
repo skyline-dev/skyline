@@ -1,5 +1,7 @@
 **/target
 **/*.py
 **/*.pyc
+**/symstemp.ld
+build*/
 Cargo.lock
 subsdk9
