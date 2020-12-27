@@ -1,3 +1,5 @@
+extern crate bindgen;
+
 use std::fs;
 
 use std::path::{
@@ -82,6 +84,17 @@ fn main() {
 
     // Linker flags
     println!("cargo:rustc-cdylib-link-args=--shared --export-dynamic -nodefaultlibs");
+
+    // let bindings = bindgen::Builder::default()
+    // .clang_arg("-std=c++17")
+    // .clang_arg("-Fsrc/cpp/include/")
+    // .clang_arg("-F/opt/devkitpro/devkitA64/aarch64-none-elf/include/c++/10.2.0")
+    // .clang_arg("-F/opt/devkitpro/devkitA64/aarch64-none-elf/include/c++/10.2.0/aarch64-none-elf")
+    // .enable_cxx_namespaces()
+    // .layout_tests(false)
+    // .header("src/cpp/include/wrapper.hpp")
+    // .generate()
+    // .expect("Unable to generate bindings");
 
     cc::Build::new()
         .compiler("/opt/devkitpro/devkitA64/bin/aarch64-none-elf-g++")
