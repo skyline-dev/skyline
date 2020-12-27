@@ -1,5 +1,6 @@
 #![feature(proc_macro_hygiene)]
 
+mod api;
 mod init;
 mod pointer_iter;
 

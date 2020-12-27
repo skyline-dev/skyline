@@ -642,7 +642,7 @@ void* A64HookFunctionV(void* const symbol, void* const replace, void* const rxtr
 
 //-------------------------------------------------------------------------
 
-extern "C" void A64HookFunction(void* const symbol, void* const replace, void** result) {
+extern "C" void A64HookFunction_impl(void* const symbol, void* const replace, void** result) {
     nn::os::LockMutex(&hookMutex);
 
     R_ERRORONFAIL(jitTransitionToWritable(&__insns_jit));
@@ -674,7 +674,7 @@ extern const void (*inlineHandlerImpl)(void);
 
 u64 inline_hook_curridx = 0;
 
-extern "C" void A64InlineHook(void* const address, void* const callback) {
+extern "C" void A64InlineHook_impl(void* const address, void* const callback) {
     u64 handler_start_addr = (u64)&inlineHandlerStart;
     u64 handler_end_addr = (u64)&inlineHandlerEnd;
 
@@ -697,7 +697,7 @@ extern "C" void A64InlineHook(void* const address, void* const callback) {
 
     // hook to call the handler
     void* trampoline;
-    A64HookFunction(address, &rx.handler, &trampoline);
+    A64HookFunction_impl(address, &rx.handler, &trampoline);
 
     // populate handler entry
     jitTransitionToWritable(&__inline_hook_jit);

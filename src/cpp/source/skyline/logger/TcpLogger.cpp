@@ -4,9 +4,9 @@
 
 #define PORT 6969
 
-extern "C" void skyline_tcp_send_raw(char* data, size_t size) __attribute__((visibility("default")));
+extern "C" void skyline_tcp_send_raw_impl(char* data, size_t size) __attribute__((visibility("default")));
 
-void skyline_tcp_send_raw(char* data, u64 size) { skyline::logger::s_Instance->Log(data, size); }
+void skyline_tcp_send_raw_impl(char* data, u64 size) { skyline::logger::s_Instance->Log(data, size); }
 
 namespace skyline::logger {
 int g_tcpSocket;
@@ -22,10 +22,10 @@ void TcpLogger::Initialize() {
 
     Result (*nnSocketInitalizeImpl)(void*, ulong, ulong, int);
 
-    A64HookFunction(reinterpret_cast<void*>(nn::socket::Initialize), reinterpret_cast<void*>(stub),
+    A64HookFunction_impl(reinterpret_cast<void*>(nn::socket::Initialize), reinterpret_cast<void*>(stub),
                     (void**)&nnSocketInitalizeImpl);  // prevent trying to init sockets twice (crash)
 
-    A64HookFunction(reinterpret_cast<void*>(nn::socket::Finalize), reinterpret_cast<void*>(stub),
+    A64HookFunction_impl(reinterpret_cast<void*>(nn::socket::Finalize), reinterpret_cast<void*>(stub),
                     NULL);  // prevent it being deinit either
 
     nnSocketInitalizeImpl(socketPool, poolSize, 0x20000, 14);

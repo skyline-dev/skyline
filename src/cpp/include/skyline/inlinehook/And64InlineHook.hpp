@@ -54,7 +54,7 @@ struct InlineCtx {
 };
 
 void A64HookInit();
-extern "C" void A64HookFunction(void* const symbol, void* const replace, void** result);
+extern "C" void A64HookFunction_impl(void* const symbol, void* const replace, void** result);
 void* A64HookFunctionV(void* const symbol, void* const replace, void* const rxtr, void* const rwtr,
                        const uintptr_t rwx_size);
-extern "C" void A64InlineHook(void* const symbol, void* const replace);
+extern "C" void A64InlineHook_impl(void* const symbol, void* const replace);

@@ -115,7 +115,7 @@ namespace plugin {
 
         // get our own program ID
         // TODO: dedicated util for this
-        u64 program_id = get_program_id();
+        u64 program_id = get_program_id_impl();
 
         // initialize nrr header
         auto nrrHeader = reinterpret_cast<nn::ro::NrrHeader*>(m_nrrBuffer.get());

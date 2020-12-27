@@ -53,7 +53,7 @@ u64 memNextMapOfPerm(u64 addr, u32 perm) {
     return memNextMapOfType(map.addr, perm);
 }
 
-u64 get_program_id() {
+u64 get_program_id_impl() {
     u64 program_id;
     svcGetInfo(&program_id, 18, CUR_PROCESS_HANDLE, 0);
     return program_id;

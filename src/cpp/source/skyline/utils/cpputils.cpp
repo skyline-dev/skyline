@@ -178,7 +178,7 @@ Result utils::entryCount(u64* out, std::string const& path, nn::fs::DirectoryEnt
         false);  // not recursive
 }
 
-void* utils::getRegionAddress(skyline::utils::region region) {
+void* utils::getRegionAddress_impl(skyline::utils::region region) {
     switch (region) {
         case region::Text:
             return (void*)g_MainTextAddr;

@@ -87,17 +87,17 @@ void skyline_main() {
                                     &exception_info);
 
     // hook to prevent the game from double mounting romfs
-    A64HookFunction(reinterpret_cast<void*>(nn::fs::MountRom), reinterpret_cast<void*>(handleNnFsMountRom),
+    A64HookFunction_impl(reinterpret_cast<void*>(nn::fs::MountRom), reinterpret_cast<void*>(handleNnFsMountRom),
                     (void**)&nnFsMountRomImpl);
 
     // manually init nn::ro ourselves, then stub it so the game doesn't try again
     nn::ro::Initialize();
-    A64HookFunction(reinterpret_cast<void*>(nn::ro::Initialize), reinterpret_cast<void*>(stub), NULL);
+    A64HookFunction_impl(reinterpret_cast<void*>(nn::ro::Initialize), reinterpret_cast<void*>(stub), NULL);
 
     // hook abort to get crash info
     uintptr_t VAbort_ptr = 0;
     nn::ro::LookupSymbol(&VAbort_ptr, "_ZN2nn4diag6detail10VAbortImplEPKcS3_S3_iPKNS_6ResultEPKNS_2os17UserExceptionInfoES3_St9__va_list");
-    A64HookFunction(reinterpret_cast<void*>(VAbort_ptr), reinterpret_cast<void*>(handleNnDiagDetailVAbortImpl), (void**)&VAbortImpl);
+    A64HookFunction_impl(reinterpret_cast<void*>(VAbort_ptr), reinterpret_cast<void*>(handleNnDiagDetailVAbortImpl), (void**)&VAbortImpl);
 
     // mount rom
     
