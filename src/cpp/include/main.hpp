@@ -3,6 +3,7 @@
 #include <map>
 #include <string>
 
+#include "cxa.h"
 #include "alloc.h"
 #include "mem.h"
 #include "nn/crypto.h"
