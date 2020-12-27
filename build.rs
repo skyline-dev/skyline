@@ -21,6 +21,42 @@ fn get_cpp_files<P: AsRef<Path>>(dir: P) -> Vec<PathBuf> {
     }).collect()
 }
 
+fn get_header_files<P: AsRef<Path>>(dir: P) -> Vec<PathBuf> {
+    fs::read_dir(dir).unwrap().flat_map(|entry| {
+        let entry = entry.unwrap();
+        let path = entry.path();
+
+        if entry.file_type().unwrap().is_file() {
+            match path.extension().unwrap().to_string_lossy().into_owned().as_ref() {
+                "h" => Vec::from([path]).into_iter(),
+                _ => Vec::from([]).into_iter(),
+            }
+        } else {
+            get_cpp_files(path).into_iter()
+        }
+    }).collect()
+}
+
+fn find_libgcc_folder() -> impl std::fmt::Display {
+    fs::read_dir("/opt/devkitpro/devkitA64/lib/gcc/aarch64-none-elf")
+        .unwrap()
+        .filter_map(|entry| {
+            let entry = entry.unwrap();
+            if entry.file_type().unwrap().is_dir() {
+                let path = entry.path().join("pic");
+                if path.exists() {
+                    Some(path.display().to_string())
+                } else {
+                    None
+                }
+            } else {
+                None
+            }
+        })
+        .next()
+        .expect("No libgcc folder found. is devkitA64 installed?")
+}
+
 /// Requires WSL and Devkitpro for now
 fn main() {
     // TODO: link in old skyline stuff
@@ -34,9 +70,12 @@ fn main() {
     for file in &source_files {
         println!("cargo:rerun-if-changed={}", file.display());
     }
+    for file in get_cpp_files("src/cpp/include/") {
+        println!("cargo:rerun-if-changed={}", file.display());
+    }
     // Needed to find stdc++ and gcc
     println!("cargo:rustc-link-search=/opt/devkitpro/devkitA64/aarch64-none-elf/lib/pic");
-    println!("cargo:rustc-link-search=/opt/devkitpro/devkitA64/lib/gcc/aarch64-none-elf/10.2.0/pic");
+    println!("cargo:rustc-link-search={}", find_libgcc_folder());
     // Static libraries
     println!("cargo:rustc-link-lib=static=stdc++");
     println!("cargo:rustc-link-lib=static=gcc");
