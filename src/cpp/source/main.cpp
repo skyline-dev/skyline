@@ -67,11 +67,15 @@ void handleNnDiagDetailVAbortImpl(char const* str1, char const* str2, char const
     VAbortImpl(str1, str2, str3, int1, code, ExceptionInfo, fmt, args);
 }
 
-void skyline_main() {
-    // populate our own process handle
+extern "C" void populate_process_handle() {
     Handle h;
     skyline::utils::Ipc::getOwnProcessHandle(&h);
     envSetOwnProcessHandle(h);
+}
+
+extern "C" void skyline_main() {
+    // populate our own process handle
+    populate_process_handle();
     //svcBreak(0x69, 0,0);
 
     // init hooking setup
@@ -139,11 +143,4 @@ void skyline_main() {
 
     nvnInit(&device); // re-init with our newly acquired device
     */
-}
-
-extern "C" void skyline_init() {
-    skyline::utils::init();
-    virtmemSetup();  // needed for libnx JIT
-
-    skyline_main();
 }

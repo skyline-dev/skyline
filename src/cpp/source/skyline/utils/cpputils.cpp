@@ -15,6 +15,10 @@ u64 utils::g_MainHeapAddr;
 
 nn::settings::system::FirmwareVersion utils::g_CachedFwVer;
 
+extern "C" void utils_init() {
+    utils::init();
+}
+
 void utils::init() {
     // find .text
     utils::g_MainTextAddr =
