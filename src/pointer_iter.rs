@@ -16,11 +16,13 @@ impl<'a, T: Sized> Iterator for StartEndArrayIterator<'a, T> {
         if (self.current as *const _) as usize >= (self.end as *const _) as usize {
             None
         } else {
+            let ret = self.current;
+
             self.current = unsafe {
                 &*((self.current as *const T as *const usize).offset(1) as *const T)
             };
 
-            Some(self.current)
+            Some(ret)
         }
     }
 }

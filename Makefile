@@ -8,9 +8,6 @@ SOURCE_FILES := $(CFILES) $(CPPFILES) $(SFILES) $(RSFILES)
 
 build: subsdk9
 
-run: build
-	cargo skyline listen
-
 clean:
 	@rm -f subsdk9 target/aarch64-skyline-switch/release/librust_skyline.nso
 
