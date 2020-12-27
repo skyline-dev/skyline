@@ -9,10 +9,12 @@ macro_rules! extern_forward {
         )+
     ) => {
         $(
+            #[allow(non_snake_case, improper_ctypes)]
             extern "C" {
                 fn $link_name( $($arg : $ty ),*) $(-> $ret)?;
             }
 
+            #[allow(non_snake_case, improper_ctypes)]
             #[no_mangle]
             unsafe fn $name ( $($arg : $ty ),* ) $(-> $ret)? {
                 $link_name( $( $arg ),*)

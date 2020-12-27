@@ -70,7 +70,7 @@ fn main() {
     for file in &source_files {
         println!("cargo:rerun-if-changed={}", file.display());
     }
-    for file in get_cpp_files("src/cpp/include/") {
+    for file in get_header_files("src/cpp/include/") {
         println!("cargo:rerun-if-changed={}", file.display());
     }
     // Needed to find stdc++ and gcc
