@@ -53,7 +53,7 @@ struct InlineCtx {
     nn::os::CpuRegister registers[29];
 };
 
-void A64HookInit();
+extern "C" void A64HookInit();
 extern "C" void A64HookFunction_impl(void* const symbol, void* const replace, void** result);
 void* A64HookFunctionV(void* const symbol, void* const replace, void* const rxtr, void* const rwtr,
                        const uintptr_t rwx_size);

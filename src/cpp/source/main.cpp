@@ -74,12 +74,7 @@ extern "C" void populate_process_handle() {
 }
 
 extern "C" void skyline_main() {
-    // populate our own process handle
-    populate_process_handle();
     //svcBreak(0x69, 0,0);
-
-    // init hooking setup
-    A64HookInit();
 
     // initialize logger
     skyline::logger::s_Instance = new skyline::logger::TcpLogger();

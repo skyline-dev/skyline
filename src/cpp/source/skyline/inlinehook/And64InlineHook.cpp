@@ -523,7 +523,7 @@ static nn::os::MutexType hookMutex;
 
 //-------------------------------------------------------------------------
 
-void A64HookInit() {
+extern "C" void A64HookInit() {
     nn::os::InitializeMutex(&hookMutex, false, 0);
 
     // allocate normal hook JIT

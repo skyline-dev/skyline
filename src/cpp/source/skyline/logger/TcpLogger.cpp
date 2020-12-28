@@ -17,18 +17,18 @@ Result stub(){
 };
 
 void TcpLogger::Initialize() {
-    const size_t poolSize = 0x600000;
-    void* socketPool = memalign(0x4000, poolSize);
+    //const size_t poolSize = 0x600000;
+    //void* socketPool = memalign(0x4000, poolSize);
 
-    Result (*nnSocketInitalizeImpl)(void*, ulong, ulong, int);
+    //Result (*nnSocketInitalizeImpl)(void*, ulong, ulong, int);
 
-    A64HookFunction_impl(reinterpret_cast<void*>(nn::socket::Initialize), reinterpret_cast<void*>(stub),
-                    (void**)&nnSocketInitalizeImpl);  // prevent trying to init sockets twice (crash)
+    //A64HookFunction_impl(reinterpret_cast<void*>(nn::socket::Initialize), reinterpret_cast<void*>(stub),
+    //                (void**)&nnSocketInitalizeImpl);  // prevent trying to init sockets twice (crash)
 
-    A64HookFunction_impl(reinterpret_cast<void*>(nn::socket::Finalize), reinterpret_cast<void*>(stub),
-                    NULL);  // prevent it being deinit either
+    //A64HookFunction_impl(reinterpret_cast<void*>(nn::socket::Finalize), reinterpret_cast<void*>(stub),
+    //                NULL);  // prevent it being deinit either
 
-    nnSocketInitalizeImpl(socketPool, poolSize, 0x20000, 14);
+    //nnSocketInitalizeImpl(socketPool, poolSize, 0x20000, 14);
 
     struct sockaddr_in serverAddr;
     g_tcpSocket = nn::socket::Socket(AF_INET, SOCK_STREAM, 0);
