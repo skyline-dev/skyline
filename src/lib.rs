@@ -1,5 +1,6 @@
 #![feature(proc_macro_hygiene)]
 #![feature(new_uninit)]
+#![feature(asm)]
 
 mod nx;
 mod api;
