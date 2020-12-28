@@ -1,2 +1,4 @@
 pub mod result;
-pub mod svc;
+
+#[allow(dead_code)]
+pub mod kern;

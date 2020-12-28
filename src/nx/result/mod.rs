@@ -27,18 +27,6 @@ impl NxResult {
     }
 }
 
-impl From<NxResult> for u32 {
-    fn from(res: NxResult) -> Self {
-        res.into()
-    }
-}
-
-impl From<u32> for NxResult {
-    fn from(num: u32) -> Self {
-        NxResult(num)
-    }
-}
-
 #[macro_export]
 macro_rules! make_result {
     ($name:ident, $module:expr, $description:expr) => {

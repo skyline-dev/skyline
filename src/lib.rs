@@ -2,6 +2,9 @@
 #![feature(new_uninit)]
 #![feature(asm)]
 
+#[macro_use]
+extern crate bitflags;
+
 mod nx;
 mod api;
 mod init;

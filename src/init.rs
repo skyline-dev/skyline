@@ -15,6 +15,8 @@ extern "C" {
     static __fini_array_end__: FiniFn;
 }
 
+use crate::nx::kern::svc;
+
 #[no_mangle]
 unsafe extern "C" fn __custom_init() {
     for preinit_func in StartEndArrayIterator::new(&__preinit_array_start__, &__preinit_array_end__) {
@@ -24,6 +26,8 @@ unsafe extern "C" fn __custom_init() {
     for init_func in StartEndArrayIterator::new(&__init_array_start__, &__init_array_end__) {
         init_func();
     }
+
+    svc::output_debug_string("Hello Rust!").unwrap();
 
     crate::main();
 }
