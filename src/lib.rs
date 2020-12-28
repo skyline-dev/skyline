@@ -1,6 +1,7 @@
 #![feature(proc_macro_hygiene)]
 #![feature(new_uninit)]
 
+mod nx;
 mod api;
 mod init;
 mod pointer_iter;
