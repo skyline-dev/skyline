@@ -1,6 +1,6 @@
 use crate::nx::result::NxResult;
 
-const MODULE: u32 = 1;
+const MODULE: u32 = 2;
 
 mod_result!(PATH_NOT_FOUND,         1);
 mod_result!(PATH_ALREADY_EXISTS,    2);
