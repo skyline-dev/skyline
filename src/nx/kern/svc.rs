@@ -110,8 +110,8 @@ pub fn unmap_memory(dst_address: usize, src_address: usize, size: usize) -> Resu
 }
 
 pub struct QueryMemoryResult {
-    meminfo: types::MemoryInfo,
-    pageinfo: types::PageInfo,
+    pub meminfo: types::MemoryInfo,
+    pub pageinfo: types::PageInfo,
 }
 
 pub fn query_memory(address: usize) -> Result<QueryMemoryResult, NxResult> {
@@ -151,6 +151,23 @@ pub fn exit_process() -> ! {
     unreachable!();
 }
 
+pub fn close_handle(handle: types::Handle) -> Result<(), NxResult> {
+    let res: NxResult;
+
+    unsafe {
+        asm! {
+            "
+            mov w0, $1
+            svc 0x16
+            "
+            :   "={w0}"(res)
+            :   "r"(handle)
+        }
+    };
+
+    check_res!(res, ());
+}
+
 pub fn output_debug_string(string: &str) -> Result<(), NxResult> {
     let res: NxResult;
 
@@ -182,7 +199,7 @@ pub fn get_info(info_type: types::InfoType, handle: types::Handle, sub_type: u64
             mov w0, $2
             mov w1, $3
             mov x2, $4
-            svc 0x27
+            svc 0x29
             "
             :  "={w0}"(res), "={x1}"(info)
             :  "r"(info_type), "r"(handle), "r"(sub_type)
@@ -190,4 +207,43 @@ pub fn get_info(info_type: types::InfoType, handle: types::Handle, sub_type: u64
     }
 
     check_res!(res, info);
+}
+
+pub fn create_code_memory(address: usize, size: usize) -> Result<types::Handle, NxResult> {
+    let res: NxResult;
+    let handle: types::Handle;
+
+    unsafe {
+        asm!(
+            "
+            mov x1, $2
+            mov x2, $3
+            svc 0x4b
+            "
+            :   "={w0}"(res), "={w1}"(handle)
+            :   "r"(address), "r"(size)
+        )
+    };
+
+    check_res!(res, handle);
+}
+
+pub fn control_code_memory(handle: types::Handle, op: types::CodeMapOperation, address: usize, size: usize, perm: types::MemoryPermission) -> Result<(), NxResult> {
+    let res: NxResult;
+
+    unsafe {
+        asm!(
+            "
+            mov w0, $1
+            mov w1, $2
+            mov x2, $3
+            mov x3, $4
+            mov w4, $5
+            "
+            :   "={w0}"(res)
+            :   "r"(handle), "r"(op), "r"(address), "r"(size), "r"(perm)
+        )
+    };
+
+    check_res!(res, ());
 }

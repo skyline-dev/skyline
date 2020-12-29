@@ -12,6 +12,7 @@ crate-type = ["cdylib"]
 
 [dependencies]
 skyline = { git = "https://github.com/ultimate-research/skyline-rs.git" }
+lazy_static = "1.4.0"
 bitflags = "1.2.1"
 
 [build-dependencies]

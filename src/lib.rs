@@ -1,9 +1,13 @@
 #![feature(proc_macro_hygiene)]
 #![feature(new_uninit)]
 #![feature(asm)]
+#![feature(option_result_contains)]
+#![feature(result_contains_err)]
 
 #[macro_use]
 extern crate bitflags;
+#[macro_use]
+extern crate lazy_static;
 
 mod nx;
 mod api;

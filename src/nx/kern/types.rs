@@ -1,3 +1,6 @@
+pub const PAGE_SIZE: usize = 0x1000;
+
+#[derive(Eq, PartialEq)]
 pub enum MemoryState {
     Free             = 0x00,
     Io               = 0x01,
@@ -25,6 +28,7 @@ pub enum MemoryState {
 
 bitflags! {
     pub struct MemoryPermission : u32 {
+        const NONE          = 0;
         const READ          = 1 << 0;
         const WRITE         = 1 << 1;
         const EXECUTE       = 1 << 2;
@@ -50,12 +54,12 @@ pub struct PageInfo {
 }
 
 #[repr(transparent)]
+#[derive(Clone, Copy, PartialEq, Eq)]
 pub struct Handle(u32);
 
-
-
 impl Handle {
-    pub const CURR_PROC: Self = Self(0xFFFF8001u32);
+    pub const INVALID   : Self = Self(0);
+    pub const CURR_PROC : Self = Self(0xFFFF8001u32);
 }
 
 pub enum MemoryRegionType {
@@ -65,6 +69,7 @@ pub enum MemoryRegionType {
     DTB               = 3,
 }
 
+#[derive(Clone, Copy, PartialEq, Eq)]
 pub enum InfoType {
     CoreMask                       = 0,
     PriorityMask                   = 1,
@@ -104,14 +109,21 @@ pub enum TickCountInfo {
     Core3 = 3,
 }
 
-
 pub struct MemoryInfo {
-    base_address: usize,
-    size: usize,
-    state: MemoryState,
-    attribute: MemoryAttribute,
-    permission: MemoryPermission,
-    device_refcount: u32,
-    ipc_refcount: u32,
-    padding: u32,
+    pub base_address: usize,
+    pub size: usize,
+    pub state: MemoryState,
+    pub attribute: MemoryAttribute,
+    pub permission: MemoryPermission,
+    pub device_refcount: u32,
+    pub ipc_refcount: u32,
+    pub padding: u32,
+}
+
+pub enum CodeMapOperation {
+    MapOwner = 0,
+    Invalid = -1,
+    MapSlave = 1,
+    UnmapOwner = 2,
+    UnmapSlave = 3,
 }

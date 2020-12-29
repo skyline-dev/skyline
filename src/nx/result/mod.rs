@@ -46,3 +46,4 @@ make_result!(SUCCESS, 0, 0);
 
 pub mod fs;
 pub mod kern;
+pub mod libnx;
