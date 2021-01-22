@@ -8,6 +8,7 @@
         A64InlineHook;
         sky_memcpy;
         get_program_id;
+        get_plugin_addresses;
         
     local: *;
 };  

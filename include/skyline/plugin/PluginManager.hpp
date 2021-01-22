@@ -35,10 +35,20 @@ namespace plugin {
         }
 
         void LoadPluginsImpl();
+        const PluginInfo* GetPluginByNameImpl(const char* path);
 
        public:
         static inline void LoadPlugins() { GetInstance().LoadPluginsImpl(); }
+        static inline const PluginInfo* GetPluginByName(const char* path) { return GetInstance().GetPluginByNameImpl(path); }
     };
 
 };  // namespace plugin
 };  // namespace skyline
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+void get_plugin_addresses(const char* path, void** start, void** end);
+#ifdef __cplusplus
+}
+#endif
