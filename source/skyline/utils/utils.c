@@ -58,3 +58,4 @@ u64 get_program_id() {
     svcGetInfo(&program_id, 18, CUR_PROCESS_HANDLE, 0);
     return program_id;
 }
+

@@ -1,7 +1,6 @@
 #pragma once
 
 #include "types.h"
-
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
 
@@ -18,7 +17,6 @@ u64 memNextMap(u64);
 u64 memNextMapOfType(u64, u32);
 u64 memNextMapOfPerm(u64, u32);
 u64 get_program_id();
-
 void inlineHandler();
 
 #ifdef __cplusplus

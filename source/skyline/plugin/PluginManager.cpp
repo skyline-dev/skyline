@@ -203,5 +203,28 @@ namespace plugin {
         }
     }
 
+    const PluginInfo* Manager::GetContainingPluginImpl(const void* addr) {
+        const PluginInfo* ret = nullptr;
+        for (auto& plugin : m_pluginInfos) {
+            void* module_start = (void*)plugin.Module.ModuleObject->module_base;
+            void* module_end = module_start + plugin.Size;
+            if (module_start < addr && addr < module_end) {
+                ret = &plugin;
+                break;
+            }
+        }
+        return ret;
+    }
+
 };  // namespace plugin
 };  // namespace skyline
+
+void get_plugin_addresses(const void* internal_addr, void** start, void** end) {
+    auto info = skyline::plugin::Manager::GetContainingPlugin(internal_addr);
+    if (info == nullptr)
+        *start = *end = nullptr;
+    else {
+        *start = (void*)info->Module.ModuleObject->module_base;
+        *end = *start + info->Size;
+    }
+}
