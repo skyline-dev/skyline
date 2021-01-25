@@ -35,11 +35,11 @@ namespace plugin {
         }
 
         void LoadPluginsImpl();
-        const PluginInfo* GetPluginByNameImpl(const char* path);
+        const PluginInfo* GetContainingPluginImpl(const void* addr);
 
        public:
         static inline void LoadPlugins() { GetInstance().LoadPluginsImpl(); }
-        static inline const PluginInfo* GetPluginByName(const char* path) { return GetInstance().GetPluginByNameImpl(path); }
+        static inline const PluginInfo* GetContainingPlugin(const void* addr) { return GetInstance().GetContainingPluginImpl(addr); }
     };
 
 };  // namespace plugin
@@ -48,7 +48,7 @@ namespace plugin {
 #ifdef __cplusplus
 extern "C" {
 #endif
-void get_plugin_addresses(const char* path, void** start, void** end);
+void get_plugin_addresses(const void* internal_addr, void** start, void** end);
 #ifdef __cplusplus
 }
 #endif

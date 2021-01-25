@@ -203,10 +203,12 @@ namespace plugin {
         }
     }
 
-    const PluginInfo* Manager::GetPluginByNameImpl(const char* path) {
+    const PluginInfo* Manager::GetContainingPluginImpl(const void* addr) {
         const PluginInfo* ret = nullptr;
         for (auto& plugin : m_pluginInfos) {
-            if (strcmp(plugin.Path.c_str(), path) == 0) {
+            void* module_start = (void*)plugin.Module.ModuleObject->module_base;
+            void* module_end = module_start + plugin.Size;
+            if (module_start < addr && addr < module_end) {
                 ret = &plugin;
                 break;
             }
@@ -217,8 +219,8 @@ namespace plugin {
 };  // namespace plugin
 };  // namespace skyline
 
-void get_plugin_addresses(const char* path, void** start, void** end) {
-    auto info = skyline::plugin::Manager::GetPluginByName(path);
+void get_plugin_addresses(const void* internal_addr, void** start, void** end) {
+    auto info = skyline::plugin::Manager::GetContainingPlugin(internal_addr);
     if (info == nullptr)
         *start = *end = nullptr;
     else {
