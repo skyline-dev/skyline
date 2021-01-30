@@ -1,4 +1,4 @@
-use crate::pointer_iter::StartEndArrayIterator;
+use crate::{pointer_iter::StartEndArrayIterator};
 
 type PreInitFn = extern "C" fn();
 type InitFn = extern "C" fn();
@@ -16,6 +16,7 @@ extern "C" {
 }
 
 use crate::nx::kern::svc;
+use crate::nx::util::cur_proc_handle;
 
 #[no_mangle]
 unsafe extern "C" fn __custom_init() {
@@ -27,7 +28,14 @@ unsafe extern "C" fn __custom_init() {
         init_func();
     }
 
-    svc::output_debug_string("Hello Rust!").unwrap();
+    svc::output_debug_string("Hello Rust!\n").unwrap();
+
+    let proc: u32 = cur_proc_handle::get().into();
+    
+    svc::output_debug_string("Current process handle: ").unwrap();
+    svc::output_debug_string(&proc.to_string()).unwrap();
+
+    svc::break_();
 
     crate::main();
 }

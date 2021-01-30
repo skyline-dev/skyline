@@ -52,15 +52,20 @@ bitflags! {
 pub struct PageInfo {
     flags: u32,
 }
-
 #[repr(transparent)]
 #[derive(Clone, Copy, PartialEq, Eq)]
-pub struct Handle(u32);
+pub struct Handle(pub u32);
 
 impl Handle {
     pub const INVALID   : Self = Self(0);
     pub const CURR_PROC : Self = Self(0xFFFF8001u32);
 }
+
+impl From<Handle> for u32 {
+    fn from(v: Handle) -> Self {
+        v.0
+    }
+} 
 
 pub enum MemoryRegionType {
     None              = 0,

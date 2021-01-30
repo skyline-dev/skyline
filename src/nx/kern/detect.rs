@@ -18,37 +18,48 @@ fn detect_kernel_version() -> usize {
     ];
 
     check_arr.iter()
-        .map(|&i| svc::get_info(i, Handle::INVALID, 0).err()) /* Test if the InfoType is valid for kernel */
-        .position(|opt| opt.contains(&kern::INVALID_ENUM_VALUE)) /* Find the position of the first InfoType not recognized by the kernel */
-        .unwrap_or(check_arr.len()) /* If all succeeded, we are the latest version detected. */
-        + 1 /* One-based index */
+        /* Test if the InfoType is valid for kernel */
+        .map(|&i| svc::get_info(i, Handle::INVALID, 0).err()) 
+        /* Find the position of the first InfoType not recognized by the kernel */
+        .position(|opt| opt.contains(&kern::INVALID_ENUM_VALUE)) 
+        /* If all succeeded, we are the latest version detected. */
+        .unwrap_or(check_arr.len()) 
+        /* One-based index */
+        + 1 
 }
 
 fn detect_kernel_patch() -> bool {
     unsafe {
-        /* Allocate a page to initialize for CodeMemory */
-        let heap = alloc(Layout::from_size_align(PAGE_SIZE, PAGE_SIZE).unwrap());
-        /* Create a code memory for testing */
+        /* Allocate a page to initialize for CodeMemory. */
+        let layout = Layout::from_size_align(PAGE_SIZE, PAGE_SIZE).unwrap();
+        let heap = alloc(layout);
+        
+        /* Create a code memory for testing. */
         let code = svc::create_code_memory(heap as usize, PAGE_SIZE).unwrap();
-        /* Test a code memory operation */
+        /* Test a code memory operation. */
         let test = svc::control_code_memory(code, CodeMapOperation::Invalid, 0, PAGE_SIZE, MemoryPermission::NONE);
-        /* Clean up the code memory handle */
+        /* Clean up the code memory handle. */
         svc::close_handle(code).unwrap();
-        /* This result will only be returned if there's a kernel patch allowing JIT */
+        /* Clean up page allocated. */
+        std::alloc::dealloc(heap, layout);
+        /* This result will only be returned if there's a kernel patch allowing JIT. */
         test.contains_err(&kern::INVALID_ENUM_VALUE)
     }
 }
 
 /* TODO */
-/*macro_rules! create_ver_check {
-    ($ver:ident) => {
-        pub fn kernel_above_($ver)00() -> bool {
+/* 
+macro_rules! create_ver_check {
+    ($ver:expr) => {
+        pub fn concat_idents!(version_above_, $ver)00() -> bool {
             KERNEL_VERSION > $ver
         }
     };
 }
 
-create_ver_check!(400); */
+create_ver_check!(4);
+
+*/
 
 pub fn version_above_200() -> bool {
     KERNEL_VERSION.ge(&2)

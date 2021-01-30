@@ -3,13 +3,13 @@
 #![feature(asm)]
 #![feature(option_result_contains)]
 #![feature(result_contains_err)]
+#![feature(slice_fill)]
 
 #[macro_use]
 extern crate bitflags;
 #[macro_use]
 extern crate lazy_static;
-
-mod nx;
+pub mod nx;
 mod api;
 mod init;
 mod pointer_iter;

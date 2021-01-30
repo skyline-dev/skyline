@@ -1,7 +1,7 @@
 use std::mem::MaybeUninit;
 use crate::nx::result;
 use crate::nx::result::NxResult;
-use crate::nx::kern::types;
+use crate::nx::kern::types::{*};
 
 macro_rules! check_res {
     ($res:expr, $out:expr) => {
@@ -21,30 +21,26 @@ pub fn set_heap_size(size: usize) -> Result<usize, NxResult> {
     unsafe {
         asm!(
             "
-            mov x1, {3}
             svc 0x1
             "
             :  "={W0}" (res), "={X1}"(out)
-            :  "r" (size)
+            :  "{x1}" (size)
         );
     }
 
     check_res!(res, out);
 }
 
-pub fn set_memory_permission(address: usize, size: usize, permission: types::MemoryPermission) -> Result<(), NxResult> {
+pub fn set_memory_permission(address: usize, size: usize, permission: MemoryPermission) -> Result<(), NxResult> {
     let res: NxResult;
 
     unsafe {
         asm!(
             "
-            mov x0, {1}
-            mov x1, {2}
-            mov w2, {3}
             svc 0x2
             "
             : "={W0}" (res)
-            : "r" (address), "r" (size), "r" (permission)
+            : "{x0}" (address), "{x1}" (size), "{w2}" (permission)
         );
     }
 
@@ -57,14 +53,10 @@ pub fn set_memory_attribute(address: usize, size: usize, mask: u32, value: u32) 
     unsafe {
         asm!(
             "
-            mov x0, {1}
-            mov x1, {2}
-            mov w2, {3}
-            mov w3, {4}
             svc 0x3
             "
             : "={W0}" (res)
-            : "r" (address), "r" (size), "r" (mask), "r" (value)
+            : "{x0}" (address), "{x1}" (size), "{w2}" (mask), "{w3}" (value)
         );
     }
 
@@ -77,13 +69,10 @@ pub fn map_memory(dst_address: usize, src_address: usize, size: usize) -> Result
     unsafe {
         asm!(
             "
-            mov x0, {1}
-            mov x1, {2}
-            mov x2, {3}
             svc 0x4
             "
             : "={W0}" (res)
-            : "r" (dst_address), "r" (src_address), "r" (size)
+            : "{x0}" (dst_address), "{x1}" (src_address), "{x2}" (size)
         );
     }
 
@@ -96,13 +85,10 @@ pub fn unmap_memory(dst_address: usize, src_address: usize, size: usize) -> Resu
     unsafe {
         asm!(
             "
-            mov x0, {1}
-            mov x1, {2}
-            mov x2, {3}
             svc 0x5
             "
             : "={W0}" (res)
-            : "r" (dst_address), "r" (src_address), "r" (size)
+            : "{x0}" (dst_address), "{x1}" (src_address), "{x2}" (size)
         );
     }
 
@@ -110,26 +96,24 @@ pub fn unmap_memory(dst_address: usize, src_address: usize, size: usize) -> Resu
 }
 
 pub struct QueryMemoryResult {
-    pub meminfo: types::MemoryInfo,
-    pub pageinfo: types::PageInfo,
+    pub meminfo: MemoryInfo,
+    pub pageinfo: PageInfo,
 }
 
 pub fn query_memory(address: usize) -> Result<QueryMemoryResult, NxResult> {
     let res: NxResult;
-    let meminfo = MaybeUninit::<types::MemoryInfo>::uninit();
+    let meminfo = MaybeUninit::<MemoryInfo>::uninit();
 
     let svcres = unsafe {
         
         let meminfo_ptr = meminfo.as_ptr();
-        let pageinfo: types::PageInfo;
+        let pageinfo: PageInfo;
         asm!(
             "
-            mov x0, {2}
-            mov x2, {3}
             svc 0x6
             "
             : "={W0}" (res), "={W1}" (pageinfo)
-            : "r" (address), "r" (meminfo_ptr)
+            : "{x0}" (address), "{x2}" (meminfo_ptr)
         );
 
         QueryMemoryResult {
@@ -151,21 +135,69 @@ pub fn exit_process() -> ! {
     unreachable!();
 }
 
-pub fn close_handle(handle: types::Handle) -> Result<(), NxResult> {
+pub fn close_handle(handle: Handle) -> Result<(), NxResult> {
     let res: NxResult;
 
     unsafe {
-        asm! {
+        asm!(
             "
-            mov w0, $1
             svc 0x16
             "
             :   "={w0}"(res)
-            :   "r"(handle)
-        }
+            :   "{w0}"(handle)
+        );
     };
 
     check_res!(res, ());
+}
+
+pub fn wait_synchronization_single(handle: Handle, timeout: i32) -> Result<u32, NxResult> {
+    wait_synchronization(&vec!(handle), timeout) 
+}
+
+pub fn wait_synchronization(handles: &Vec<Handle>, timeout: i32) -> Result<u32, NxResult> {
+    let res: NxResult;
+    let idx: u32;
+
+    let handles_ptr = handles.as_ptr();
+    let handles_count = handles.len();
+    unsafe {
+        asm!(
+            "
+            svc 0x18
+            "
+            :   "={w0}"(res), "={w1}"(idx)
+            :   "{x1}"(handles_ptr), "{w2}"(handles_count), "{x3}"(timeout)
+        );
+    };
+
+    check_res!(res, idx);
+}
+
+pub fn send_sync_request(handle: Handle) -> Result<(), NxResult> {
+    let res: NxResult;
+
+    unsafe {
+        asm!(
+            "
+            svc 0x21
+            "
+            :   "={w0}"(res)
+            :   "{w0}"(handle)
+        );
+    }
+
+    check_res!(res, ());
+}
+
+pub fn break_() -> ! {
+    unsafe {
+        asm!(
+            "svc 0x26"
+        );
+    }
+
+    unreachable!();
 }
 
 pub fn output_debug_string(string: &str) -> Result<(), NxResult> {
@@ -177,73 +209,163 @@ pub fn output_debug_string(string: &str) -> Result<(), NxResult> {
     unsafe {
         asm!(
             "
-            mov x0, $1
-            mov x1, $2
             svc 0x27
             "
             :  "={w0}"(res)
-            :  "r"(ptr), "r"(size)
+            :  "{x0}"(ptr), "{x1}"(size)
         );
     }
 
     check_res!(res, ());
 }
 
-pub fn get_info(info_type: types::InfoType, handle: types::Handle, sub_type: u64) -> Result<u64, NxResult> {
+pub fn get_info(info_type: InfoType, handle: Handle, sub_type: u64) -> Result<u64, NxResult> {
     let res: NxResult;
     let info: u64;
 
     unsafe {
         asm!(
             "
-            mov w0, $2
-            mov w1, $3
-            mov x2, $4
             svc 0x29
             "
             :  "={w0}"(res), "={x1}"(info)
-            :  "r"(info_type), "r"(handle), "r"(sub_type)
+            :  "{w1}"(info_type), "{w2}"(handle), "{x3}"(sub_type)
         );
     }
 
     check_res!(res, info);
 }
 
-pub fn create_code_memory(address: usize, size: usize) -> Result<types::Handle, NxResult> {
+#[derive(Copy, Clone)]
+pub struct CreateSessionResult {
+    pub server : Handle,
+    pub client : Handle,
+}
+
+pub fn create_session(is_light: bool, name: u64) -> Result<CreateSessionResult, NxResult> {
     let res: NxResult;
-    let handle: types::Handle;
+
+    let svcres = unsafe {
+        
+        let server: Handle;
+        let client: Handle;
+        asm!(
+            "
+            svc 0x40
+            "
+            : "={w0}" (res), "={w1}" (server), "={w2}" (client)
+            : "{w2}" (is_light), "{x3}" (name)
+        );
+
+        CreateSessionResult {
+            server,
+            client
+        }
+    };
+
+    check_res!(res, svcres);
+}
+
+pub fn reply_and_receive(handle_idx: &mut i32, handles: Vec<Handle>, reply_target_session_handle: Handle, timeout: u64) -> Result<(),NxResult> {
+    let res: NxResult;
+
+    /* Kernel may or may not initialize this value depending on result. We initialize as -1, as it would under some error scenarios. */
+    #[allow(unused_assignments)]
+    let mut idx = -1;
+    
+    let handles_ptr = handles.as_ptr();
+    let handles_count = handles.len();
+    unsafe {
+        asm!(
+            "
+            svc 0x43
+            "
+            : "={w0}"(res), "={w1}"(idx)
+            : "{x1}"(handles_ptr), "{w2}"(handles_count), "{w3}"(reply_target_session_handle), "{x4}"(timeout)
+        );
+    }
+
+    *handle_idx = idx;
+    check_res!(res, ());
+}
+
+pub fn create_code_memory(address: usize, size: usize) -> Result<Handle, NxResult> {
+    let res: NxResult;
+    let handle: Handle;
 
     unsafe {
         asm!(
             "
-            mov x1, $2
-            mov x2, $3
             svc 0x4b
             "
             :   "={w0}"(res), "={w1}"(handle)
-            :   "r"(address), "r"(size)
+            :   "{x1}"(address), "{x2}"(size)
         )
     };
 
     check_res!(res, handle);
 }
 
-pub fn control_code_memory(handle: types::Handle, op: types::CodeMapOperation, address: usize, size: usize, perm: types::MemoryPermission) -> Result<(), NxResult> {
+pub fn control_code_memory(handle: Handle, op: CodeMapOperation, address: usize, size: usize, perm: MemoryPermission) -> Result<(), NxResult> {
     let res: NxResult;
 
     unsafe {
         asm!(
             "
-            mov w0, $1
-            mov w1, $2
-            mov x2, $3
-            mov x3, $4
-            mov w4, $5
+            svc 0x4c
             "
             :   "={w0}"(res)
-            :   "r"(handle), "r"(op), "r"(address), "r"(size), "r"(perm)
-        )
+            :   "{w0}"(handle), "{w1}"(op), "{x2}"(address), "{x3}"(size), "{w4}"(perm)
+        );
     };
+
+    check_res!(res, ());
+}
+
+pub fn set_process_memory_permission(handle: Handle, address: usize, size: usize, perm: MemoryPermission) -> Result<(), NxResult> {
+    let res: NxResult;
+
+    unsafe {
+        asm!(
+            "
+            svc 0x73
+            "
+            :   "={w0}"(res)
+            :   "{w0}"(handle), "{x1}"(address), "{x2}"(size), "{w3}"(perm)
+        );
+    }
+
+    check_res!(res, ());
+}
+
+pub fn map_process_code_memory(handle: Handle, dst_address: usize, src_address: usize, size: usize) -> Result<(), NxResult> {
+    let res: NxResult;
+
+    unsafe {
+        asm!(
+            "
+            svc 0x77
+            "
+            :   "={w0}"(res)
+            :   "{w0}"(handle), "{x1}"(dst_address), "{x2}"(src_address), "{x3}"(size)
+        );
+    }
+
+    check_res!(res, ());
+}
+
+pub fn unmap_process_code_memory(handle: Handle, dst_address: usize, src_address: usize, size: usize) -> Result<(), NxResult> {
+    let res: NxResult;
+
+    unsafe {
+        asm!(
+            "
+            svc 0x78
+            "
+            :   "={w0}"(res)
+            :   "{w0}"(handle), "{x1}"(dst_address), "{x2}"(src_address), "{x3}"(size)
+        )
+    }
 
     check_res!(res, ());
 }
