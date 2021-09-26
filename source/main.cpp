@@ -10,15 +10,17 @@ nn::os::UserExceptionInfo exception_info;
 const char* RomMountName = "rom";
 
 void exception_handler(nn::os::UserExceptionInfo* info) {
-    skyline::logger::s_Instance->LogFormat("Exception occurred!\n");
+    skyline::logger::s_Instance->LogFormat("Exception occurred!");
 
-    skyline::logger::s_Instance->LogFormat("Error description: %x\n", info->ErrorDescription);
+    skyline::logger::s_Instance->LogFormat("Error description: %x", info->ErrorDescription);
     for (int i = 0; i < 29; i++)
-        skyline::logger::s_Instance->LogFormat("X[%02i]: %" PRIx64 "\n", i, info->CpuRegisters[i].x);
-    skyline::logger::s_Instance->LogFormat("FP: %" PRIx64 "\n", info->FP.x);
-    skyline::logger::s_Instance->LogFormat("LR: %" PRIx64 "\n", info->LR.x);
-    skyline::logger::s_Instance->LogFormat("SP: %" PRIx64 "\n", info->SP.x);
-    skyline::logger::s_Instance->LogFormat("PC: %" PRIx64 "\n", info->PC.x);
+        skyline::logger::s_Instance->LogFormat("X[%02i]: %" PRIx64, i, info->CpuRegisters[i].x);
+    skyline::logger::s_Instance->LogFormat("FP: %" PRIx64, info->FP.x);
+    skyline::logger::s_Instance->LogFormat("LR: %" PRIx64, info->LR.x);
+    skyline::logger::s_Instance->LogFormat("SP: %" PRIx64, info->SP.x);
+    skyline::logger::s_Instance->LogFormat("PC: %" PRIx64, info->PC.x);
+    skyline::logger::s_Instance->Flush();
+    asm("svc 0x26");
 }
 
 static skyline::utils::Task* after_romfs_task = new skyline::utils::Task{[]() {
@@ -84,6 +86,8 @@ void skyline_main() {
     // override exception handler to dump info
     nn::os::SetUserExceptionHandler(exception_handler, exception_handler_stack, sizeof(exception_handler_stack),
                                     &exception_info);
+
+    A64HookFunction(reinterpret_cast<void*>(nn::os::SetUserExceptionHandler), reinterpret_cast<void*>(stub), nullptr);
 
     // hook to prevent the game from double mounting romfs
     A64HookFunction(reinterpret_cast<void*>(nn::fs::MountRom), reinterpret_cast<void*>(handleNnFsMountRom),
