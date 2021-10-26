@@ -23,6 +23,15 @@ void exception_handler(nn::os::UserExceptionInfo* info) {
 
 static skyline::utils::Task* after_romfs_task = new skyline::utils::Task{[]() {
     // mount sd
+    // nn::os::SleepThread(nn::TimeSpan::FromSeconds(2));
+
+    // nn::fs::FileHandle handle;
+    // int64_t file_size = 0;
+
+    // nn::fs::OpenFile(&handle, "rom:/data.arc", nn::fs::OpenMode_Read);
+    // nn::fs::GetFileSize(&file_size, handle);
+    // nn::fs::CloseFile(handle);
+
     Result rc = nn::fs::MountSdCardForDebug("sd");
     skyline::logger::s_Instance->LogFormat("[skyline_main] Mounted SD (0x%x)", rc);
 
@@ -36,12 +45,12 @@ Result (*nnFsMountRomImpl)(char const*, void*, unsigned long);
 
 Result handleNnFsMountRom(char const* path, void* buffer, unsigned long size) {
     Result rc = 0;
-    if(strcmp(path, RomMountName) == 0) {
-        skyline::logger::s_Instance->LogFormat("[handleNnFsMountRom] Prevented game from double mounting as '%s'", RomMountName);
-    }
-    else {
-        rc = nnFsMountRomImpl(path, buffer, size);
-    }
+    rc = nnFsMountRomImpl(path, buffer, size);
+
+    // start task queue
+    skyline::utils::SafeTaskQueue* taskQueue = new skyline::utils::SafeTaskQueue(100);
+    taskQueue->startThread(20, 3, 0x4000);
+    taskQueue->push(new std::unique_ptr<skyline::utils::Task>(after_romfs_task));
     nn::os::WaitEvent(&after_romfs_task->completionEvent);
     return rc;
 }
@@ -99,20 +108,7 @@ void skyline_main() {
     A64HookFunction(reinterpret_cast<void*>(VAbort_ptr), reinterpret_cast<void*>(handleNnDiagDetailVAbortImpl), (void**)&VAbortImpl);
 
     // mount rom
-    u64 cache_size = 0;
-    Result rc;
-    rc = nn::fs::QueryMountRomCacheSize(&cache_size);
-    if(R_SUCCEEDED(rc)) {
-        u8* cache = new u8[cache_size];
-        rc = nnFsMountRomImpl(RomMountName, cache, cache_size);
-        skyline::logger::s_Instance->LogFormat("[skyline_main] Mounted Rom (0x%x)", rc);
-        if (R_FAILED(rc)) {
-            delete[] cache;
-        }
-    }
-    else {
-        skyline::logger::s_Instance->LogFormat("[skyline_main] QueryMountRomCacheSize failed (0x%x)", rc);
-    }
+    
 
     skyline::logger::s_Instance->LogFormat("[skyline_main] text: 0x%" PRIx64 " | rodata: 0x%" PRIx64
                                            " | data: 0x%" PRIx64 " | bss: 0x%" PRIx64 " | heap: 0x%" PRIx64,
@@ -120,10 +116,7 @@ void skyline_main() {
                                            skyline::utils::g_MainDataAddr, skyline::utils::g_MainBssAddr,
                                            skyline::utils::g_MainHeapAddr);
 
-    // start task queue
-    skyline::utils::SafeTaskQueue* taskQueue = new skyline::utils::SafeTaskQueue(100);
-    taskQueue->startThread(20, 3, 0x4000);
-    taskQueue->push(new std::unique_ptr<skyline::utils::Task>(after_romfs_task));
+    
 
     // TODO: experiment more with NVN
     /*nvnInit(NULL);
