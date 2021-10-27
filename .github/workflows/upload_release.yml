@@ -28,7 +28,7 @@ jobs:
       with:
         name: zip
     - name: Upload Release
-      uses: Genwald/create-release@eba889c
+      uses: majkrzak/create-release@eb634df3a52e2314e43a6265e48de2971aa4947c
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         name: beta
