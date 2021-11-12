@@ -34,6 +34,12 @@ static skyline::utils::Task* after_romfs_task = new skyline::utils::Task{[]() {
     // nn::fs::GetFileSize(&file_size, handle);
     // nn::fs::CloseFile(handle);
 
+    const size_t poolSize = 0x600000;
+    void* socketPool = memalign(0x4000, poolSize);
+    nn::socket::Initialize(socketPool, poolSize, 0x20000, 14);
+
+    skyline::logger::s_Instance->StartThread();
+
     Result rc = nn::fs::MountSdCardForDebug("sd");
     skyline::logger::s_Instance->LogFormat("[skyline_main] Mounted SD (0x%x)", rc);
 
@@ -102,10 +108,11 @@ void skyline_main() {
     // init hooking setup
     A64HookInit();
 
+    skyline::logger::setup_socket_hooks();
+
     // initialize logger
     skyline::logger::s_Instance = new skyline::logger::TcpLogger();
     skyline::logger::s_Instance->Log("[skyline_main] Begining initialization.\n");
-    skyline::logger::s_Instance->StartThread();
 
     // override exception handler to dump info
     nn::os::SetUserExceptionHandler(exception_handler, exception_handler_stack, sizeof(exception_handler_stack),

@@ -57,7 +57,12 @@ void AddToQueue(char* data) {
     g_msgQueue->push(data);
 }
 
+bool Logger::ShouldFlush() {
+    return true;
+}
+
 void Logger::Flush() {
+    if (!this->ShouldFlush()) return;
     if (!g_msgQueue) return;
 
     while (!g_msgQueue->empty()) {
