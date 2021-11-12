@@ -136,6 +136,9 @@ namespace plugin {
             hashes[curHashIdx++] = hash;
         }
 
+        // manually init nn::ro ourselves, then stub it so the game doesn't try again
+        nn::ro::Initialize();
+
         // register plugins
         rc = nn::ro::RegisterModuleInfo(&m_registrationInfo, m_nrrBuffer.get());
 

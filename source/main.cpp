@@ -2,6 +2,8 @@
 
 #include "skyline/logger/TcpLogger.hpp"
 #include "skyline/utils/ipc.hpp"
+#include "skyline/utils/cpputils.hpp"
+#include "skyline/utils/utils.h"
 
 // For handling exceptions
 char ALIGNA(0x1000) exception_handler_stack[0x4000];
@@ -47,6 +49,8 @@ Result handleNnFsMountRom(char const* path, void* buffer, unsigned long size) {
     Result rc = 0;
     rc = nnFsMountRomImpl(path, buffer, size);
 
+    skyline::utils::g_RomMountStr = std::string(path) + ":/";
+
     // start task queue
     skyline::utils::SafeTaskQueue* taskQueue = new skyline::utils::SafeTaskQueue(100);
     taskQueue->startThread(20, 3, 0x4000);
@@ -76,6 +80,19 @@ void handleNnDiagDetailVAbortImpl(char const* str1, char const* str2, char const
     VAbortImpl(str1, str2, str3, int1, code, ExceptionInfo, fmt, args);
 }
 
+static bool RO_INIT = false;
+
+Result (*nnRoInitializeImpl)();
+
+Result nn_ro_init() {
+    if (RO_INIT == false) {
+        RO_INIT = true;
+         return nnRoInitializeImpl();
+    }
+
+    return 0;
+}
+
 void skyline_main() {
     // populate our own process handle
     Handle h;
@@ -98,14 +115,12 @@ void skyline_main() {
     A64HookFunction(reinterpret_cast<void*>(nn::fs::MountRom), reinterpret_cast<void*>(handleNnFsMountRom),
                     (void**)&nnFsMountRomImpl);
 
-    // manually init nn::ro ourselves, then stub it so the game doesn't try again
-    nn::ro::Initialize();
-    A64HookFunction(reinterpret_cast<void*>(nn::ro::Initialize), reinterpret_cast<void*>(stub), NULL);
+    A64HookFunction(reinterpret_cast<void*>(nn::ro::Initialize), reinterpret_cast<void*>(nn_ro_init), (void**)&nnRoInitializeImpl);
 
     // hook abort to get crash info
-    uintptr_t VAbort_ptr = 0;
+    /* uintptr_t VAbort_ptr = 0;
     nn::ro::LookupSymbol(&VAbort_ptr, "_ZN2nn4diag6detail10VAbortImplEPKcS3_S3_iPKNS_6ResultEPKNS_2os17UserExceptionInfoES3_St9__va_list");
-    A64HookFunction(reinterpret_cast<void*>(VAbort_ptr), reinterpret_cast<void*>(handleNnDiagDetailVAbortImpl), (void**)&VAbortImpl);
+    A64HookFunction(reinterpret_cast<void*>(VAbort_ptr), reinterpret_cast<void*>(handleNnDiagDetailVAbortImpl), (void**)&VAbortImpl); */
 
     // mount rom
     

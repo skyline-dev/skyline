@@ -23,5 +23,7 @@ namespace prepo {
         Result Save();
         Result Save(account::Uid const&);
     };
+
+   void Initialize();
 };  // namespace prepo
 };  // namespace nn
