@@ -4,6 +4,7 @@
 #include "skyline/utils/ipc.hpp"
 #include "skyline/utils/cpputils.hpp"
 #include "skyline/utils/utils.h"
+#include "skyline/utils/call_once.hpp"
 
 // For handling exceptions
 char ALIGNA(0x1000) exception_handler_stack[0x4000];
@@ -86,17 +87,17 @@ void handleNnDiagDetailVAbortImpl(char const* str1, char const* str2, char const
     VAbortImpl(str1, str2, str3, int1, code, ExceptionInfo, fmt, args);
 }
 
-static bool RO_INIT = false;
-
+static skyline::utils::Once g_RoInit;
 Result (*nnRoInitializeImpl)();
 
 Result nn_ro_init() {
-    if (RO_INIT == false) {
-        RO_INIT = true;
-         return nnRoInitializeImpl();
-    }
+    Result ret = 0;
 
-    return 0;
+    g_RoInit.call_once([&ret]() {
+         ret = nnRoInitializeImpl();
+    });
+
+    return ret;
 }
 
 void skyline_main() {
