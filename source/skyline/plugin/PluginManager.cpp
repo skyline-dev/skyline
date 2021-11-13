@@ -14,6 +14,9 @@ namespace plugin {
 
         skyline::logger::s_Instance->LogFormat("[PluginManager] Initializing plugins...");
 
+        // manually init nn::ro ourselves, then stub it so the game doesn't try again
+        nn::ro::Initialize();
+
         // walk through romfs:/skyline/plugins recursively to find any files and push them into map
         skyline::utils::walkDirectory(utils::g_RomMountStr + PLUGIN_PATH,
                                       [this](nn::fs::DirectoryEntry const& entry, std::shared_ptr<std::string> path) {
@@ -135,9 +138,6 @@ namespace plugin {
         for (auto hash : sortedHashes) {
             hashes[curHashIdx++] = hash;
         }
-
-        // manually init nn::ro ourselves, then stub it so the game doesn't try again
-        nn::ro::Initialize();
 
         // register plugins
         rc = nn::ro::RegisterModuleInfo(&m_registrationInfo, m_nrrBuffer.get());

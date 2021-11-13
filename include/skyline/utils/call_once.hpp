@@ -8,6 +8,7 @@
 namespace skyline::utils {
     class Once {
         public:
+            Once();
             void call_once(std::function<void()> func);
 
         private:
