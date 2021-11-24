@@ -45,6 +45,9 @@ $(PATCH)/*.ips: $(PATCH_DIR)/*.slpatch $(CROSS_CONFIG) $(CROSS_MAPS)/*.map $(NAM
 send: all
 	$(PYTHON) $(SEND_PATCH) $(IP) $(CROSSVER)
 
+listen: send
+	cargo skyline listen
+
 clean:
 	$(MAKE) clean -f $(MAKE_NSO)
 	@rm -fr $(PATCH_PREFIX)*

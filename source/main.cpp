@@ -5,6 +5,7 @@
 #include "skyline/utils/cpputils.hpp"
 #include "skyline/utils/utils.h"
 #include "skyline/utils/call_once.hpp"
+#include "skyline/utils/SymbolMap.hpp"
 
 // For handling exceptions
 char ALIGNA(0x1000) exception_handler_stack[0x4000];
@@ -24,17 +25,33 @@ void exception_handler(nn::os::UserExceptionInfo* info) {
     skyline::logger::s_Instance->LogFormat("PC: %" PRIx64 "\n", info->PC.x);
 }
 
+void* (*lookupGlobalManualImpl)(const char* symName);
+
+void* handleLookupGlobalManual(const char* symName) {
+    void* result = lookupGlobalManualImpl(symName);
+    if (result == nullptr) {
+        uintptr_t mapValue = skyline::utils::SymbolMap::getSymbolAddress(std::string(symName));
+        return reinterpret_cast<void*>(mapValue);
+    }
+    return result;
+}
+
+Result (*handleLookupSymbolImpl)(uintptr_t* pOutAddress, const char* name);
+
+Result handleLookupSymbol(uintptr_t* pOutAddress, const char* name) {
+    Result res = handleLookupSymbolImpl(pOutAddress, name);
+    if (R_FAILED(res)) {
+        uintptr_t mapValue = skyline::utils::SymbolMap::getSymbolAddress(std::string(name));
+        if (mapValue != 0) {
+            *pOutAddress = mapValue;
+            return 0;
+        }
+    }
+
+    return res;
+}
+
 static skyline::utils::Task* after_romfs_task = new skyline::utils::Task{[]() {
-    // mount sd
-    // nn::os::SleepThread(nn::TimeSpan::FromSeconds(2));
-
-    // nn::fs::FileHandle handle;
-    // int64_t file_size = 0;
-
-    // nn::fs::OpenFile(&handle, "rom:/data.arc", nn::fs::OpenMode_Read);
-    // nn::fs::GetFileSize(&file_size, handle);
-    // nn::fs::CloseFile(handle);
-
     const size_t poolSize = 0x600000;
     void* socketPool = memalign(0x4000, poolSize);
     nn::socket::Initialize(socketPool, poolSize, 0x20000, 14);
@@ -44,8 +61,30 @@ static skyline::utils::Task* after_romfs_task = new skyline::utils::Task{[]() {
     Result rc = nn::fs::MountSdCardForDebug("sd");
     skyline::logger::s_Instance->LogFormat("[skyline_main] Mounted SD (0x%x)", rc);
 
+    // Load symbol map
+    if (skyline::utils::SymbolMap::tryLoad()) {
+        // If a symbol map was loaded, hook the global symbol lookup function
+        // Apparently, this function isn't called for every symbol, but always if a symbol couldn't be found
+        uintptr_t lookupGlobalManualPtr;
+        nn::ro::LookupSymbol(&lookupGlobalManualPtr, "_ZN2nn2ro6detail18LookupGlobalManualEPKc");
+        if (lookupGlobalManualPtr != 0) {
+            A64HookFunction(reinterpret_cast<void*>(lookupGlobalManualPtr),
+                reinterpret_cast<void*>(handleLookupGlobalManual), reinterpret_cast<void**>(&lookupGlobalManualImpl));
+        } else {
+            skyline::logger::s_Instance->LogFormat("[skyline_main] Failed to hook nn::ro::detail::LookupGlobalManual. "
+                "Symbols from maps cannot be used.");
+        }
+
+        // Also handle manual calls to nn::ro::LookupSymbol
+        A64HookFunction(reinterpret_cast<void*>(nn::ro::LookupSymbol), reinterpret_cast<void*>(handleLookupSymbol),
+           reinterpret_cast<void**>(&handleLookupSymbolImpl));
+
+        skyline::logger::s_Instance->LogFormat("[skyline_main] Installed symbol map hooks.");
+    }
+
     // load plugins
     skyline::plugin::Manager::LoadPlugins();
+    skyline::logger::s_Instance->LogFormat("[skyline_main] loaded plugins");
 }};
 
 void stub() {}
@@ -113,7 +152,7 @@ void skyline_main() {
 
     // initialize logger
     skyline::logger::s_Instance = new skyline::logger::TcpLogger();
-    skyline::logger::s_Instance->Log("[skyline_main] Begining initialization.\n");
+    skyline::logger::s_Instance->Log("[skyline_main] Beginning initialization.\n");
 
     // override exception handler to dump info
     nn::os::SetUserExceptionHandler(exception_handler, exception_handler_stack, sizeof(exception_handler_stack),
@@ -125,34 +164,12 @@ void skyline_main() {
 
     A64HookFunction(reinterpret_cast<void*>(nn::ro::Initialize), reinterpret_cast<void*>(nn_ro_init), (void**)&nnRoInitializeImpl);
 
-    // hook abort to get crash info
-    /* uintptr_t VAbort_ptr = 0;
-    nn::ro::LookupSymbol(&VAbort_ptr, "_ZN2nn4diag6detail10VAbortImplEPKcS3_S3_iPKNS_6ResultEPKNS_2os17UserExceptionInfoES3_St9__va_list");
-    A64HookFunction(reinterpret_cast<void*>(VAbort_ptr), reinterpret_cast<void*>(handleNnDiagDetailVAbortImpl), (void**)&VAbortImpl); */
-
-    // mount rom
-    
-
     skyline::logger::s_Instance->LogFormat("[skyline_main] text: 0x%" PRIx64 " | rodata: 0x%" PRIx64
                                            " | data: 0x%" PRIx64 " | bss: 0x%" PRIx64 " | heap: 0x%" PRIx64,
                                            skyline::utils::g_MainTextAddr, skyline::utils::g_MainRodataAddr,
                                            skyline::utils::g_MainDataAddr, skyline::utils::g_MainBssAddr,
                                            skyline::utils::g_MainHeapAddr);
 
-    
-
-    // TODO: experiment more with NVN
-    /*nvnInit(NULL);
-
-    NVNdeviceBuilder deviceBuilder;
-    nvnDeviceBuilderSetDefaults(&deviceBuilder);
-    nvnDeviceBuilderSetFlags(&deviceBuilder, 0);
-
-    NVNdevice device;
-    nvnDeviceInitialize(&device, &deviceBuilder);
-
-    nvnInit(&device); // re-init with our newly acquired device
-    */
 }
 
 extern "C" void skyline_init() {

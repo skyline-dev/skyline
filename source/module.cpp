@@ -1,8 +1,10 @@
+#include "ModuleObject.hpp"
+
 #define MODULE_NAME "Skyline"
 #define MODULE_NAME_LEN 7
 
 // rtld working object
-__attribute__((section(".bss"))) char __nx_module_runtime[0xD0];
+__attribute__((section(".bss"))) rtld::ModuleObject __nx_module_runtime;
 
 struct ModuleName {
     int unknown;

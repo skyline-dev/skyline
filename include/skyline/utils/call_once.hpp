@@ -11,9 +11,9 @@ namespace skyline::utils {
             void call_once(std::function<void()> func);
 
         private:
-            std::atomic<uint64_t> inner_state = INCOMPLETE;
+            std::atomic<uint64_t> inner_state = { INCOMPLETE };
 
             bool is_complete();
-            void Once::block_until_complete();
+            void block_until_complete();
     };
 }
