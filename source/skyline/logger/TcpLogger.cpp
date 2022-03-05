@@ -44,6 +44,15 @@ void init_socket_thing() {
     nn::socket::Send(g_tcpSocket, (void*)message, strlen(message), 0);
 }
 
+void start_logger_init_thread() {
+    const size_t stackSize = 0x3000;
+    void* threadStack = memalign(0x1000, stackSize);
+
+    nn::os::ThreadType* thread = new nn::os::ThreadType;
+    nn::os::CreateThread(thread, init_socket_thing, nullptr, threadStack, stackSize, 16, 0);
+    nn::os::StartThread(thread);
+}
+
 Result init_normal(void* arg1, ulong arg2, ulong arg3, int arg4) {
     if (g_loggerInit == false) {
         g_loggerInit = true;
@@ -52,7 +61,7 @@ Result init_normal(void* arg1, ulong arg2, ulong arg3, int arg4) {
         void* socketPool = memalign(0x4000, poolSize);
         Result res = nnSocketInitalizeImpl(socketPool, poolSize, 0x20000, 14);
 
-        init_socket_thing();
+        start_logger_init_thread();
 
         return res;
     }
@@ -66,7 +75,7 @@ Result init_config(nn::socket::Config const& config) {
         void* socketPool = memalign(0x4000, poolSize);
         Result res = nnSocketInitalizeImpl(socketPool, poolSize, 0x20000, 14);
 
-        init_socket_thing();
+        start_logger_init_thread();
 
         return res;
     }
