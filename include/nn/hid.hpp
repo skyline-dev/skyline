@@ -194,14 +194,14 @@ namespace hid {
     void SetSupportedNpadStyleSet(nn::util::BitFlagSet<32, nn::hid::NpadStyleTag>);
     NpadStyleSet GetNpadStyleSet(u32 const&);
     // returns the number of states put into the array
-    int GetNpadStates(nn::hid::NpadHandheldState* outArray, s32 count, u32 const& controllerID);
-    int GetNpadStates(nn::hid::NpadFullKeyState* outArray, s32 count, u32 const& controllerID);
-    int GetNpadStates(nn::hid::NpadJoyDualState* outArray, s32 count, u32 const& controllerID);
-    void GetNpadState(nn::hid::NpadHandheldState* out, u32 const& controllerID);
-    void GetNpadState(nn::hid::NpadFullKeyState* out, u32 const& controllerID);
-    void GetNpadState(nn::hid::NpadJoyDualState* out, u32 const& controllerID);
+    int GetNpadStates(nn::hid::NpadHandheldState* outArray, s32 count, u32 const& NpadId);
+    int GetNpadStates(nn::hid::NpadFullKeyState* outArray, s32 count, u32 const& NpadId);
+    int GetNpadStates(nn::hid::NpadJoyDualState* outArray, s32 count, u32 const& NpadId);
+    void GetNpadState(nn::hid::NpadHandheldState* out, u32 const& NpadId);
+    void GetNpadState(nn::hid::NpadFullKeyState* out, u32 const& NpadId);
+    void GetNpadState(nn::hid::NpadJoyDualState* out, u32 const& NpadId);
     int GetGestureStates(GestureState* outArray, int count);
-    int GetSixAxisSensorHandles(SixAxisSensorHandle* pOutValues, int count, u32 const& controllerID,
+    int GetSixAxisSensorHandles(SixAxisSensorHandle* pOutValues, int count, u32 const& NpadId,
                                 NpadStyleSet style);
     void StartSixAxisSensor(const SixAxisSensorHandle& handle);
     void StopSixAxisSensor(const SixAxisSensorHandle& handle);
