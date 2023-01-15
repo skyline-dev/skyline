@@ -19,6 +19,9 @@ Result dualstub(){
     return 0;
 };
 
+Result (*nnSocketInitImpl)(void*, ulong, ulong, int);
+Result (*nnSocketInitConfigImpl)(nn::socket::Config const&);
+
 DualLogger::DualLogger(std::string path) {
     nn::fs::DirectoryEntryType type;
     Result rc = nn::fs::GetEntryType(&type, path.c_str());
@@ -37,15 +40,19 @@ void DualLogger::Initialize() {
     const size_t poolSize = 0x600000;
     void* socketPool = memalign(0x4000, poolSize);
 
-    Result (*nnSocketInitalizeImpl)(void*, ulong, ulong, int);
+    Result (*nnSocketInitalizeWithPool)(void*, ulong, ulong, int) = nn::socket::Initialize;
+    A64HookFunction(reinterpret_cast<void*>(nnSocketInitalizeWithPool), reinterpret_cast<void*>(dualstub),
+                    (void**)&nnSocketInitImpl);  // prevent trying to init sockets twice (crash)
 
-    A64HookFunction(reinterpret_cast<void*>(nn::socket::Initialize), reinterpret_cast<void*>(dualstub),
-                    (void**)&nnSocketInitalizeImpl);  // prevent trying to init sockets twice (crash)
+    // TODO: This is definitely not the proper way to do it but I hate C++ and TcpLogger doesn't do it properly either anyways
+    Result (*socketInitializeWithConfig)(nn::socket::Config const&) = nn::socket::Initialize;
+    A64HookFunction(reinterpret_cast<void*>(socketInitializeWithConfig), reinterpret_cast<void*>(dualstub),
+                    (void**)&nnSocketInitConfigImpl);  // prevent trying to init sockets twice (crash)
 
     A64HookFunction(reinterpret_cast<void*>(nn::socket::Finalize), reinterpret_cast<void*>(dualstub),
                     NULL);  // prevent it being deinit either
 
-    nnSocketInitalizeImpl(socketPool, poolSize, 0x20000, 14);
+    nnSocketInitImpl(socketPool, poolSize, 0x20000, 14);
 
     struct sockaddr_in serverAddr;
     g_dualtcpSocket = nn::socket::Socket(AF_INET, SOCK_STREAM, 0);
