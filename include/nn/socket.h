@@ -15,7 +15,9 @@ namespace socket {
         u32 addr;
     };
 
+class Config;
     Result Initialize(void* pool, ulong poolSize, ulong allocPoolSize, int concurLimit);
+    Result Initialize(nn::socket::Config const&);
     Result Finalize();
     s32 SetSockOpt(s32 socket, s32 socketLevel, s32 option, void const*, u32 len);
     u64 Send(s32 socket, void const* buffer, u64 bufferLength, s32 flags);

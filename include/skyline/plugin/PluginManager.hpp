@@ -34,10 +34,10 @@ namespace plugin {
             return s_instance;
         }
 
-        void LoadPluginsImpl();
         const PluginInfo* GetContainingPluginImpl(const void* addr);
 
        public:
+        void LoadPluginsImpl();
         static inline void LoadPlugins() { GetInstance().LoadPluginsImpl(); }
         static inline const PluginInfo* GetContainingPlugin(const void* addr) { return GetInstance().GetContainingPluginImpl(addr); }
     };

@@ -24,4 +24,9 @@ void KernelLogger::SendRaw(void* data, size_t size) {
     const char* str = (const char*)data;
     svcOutputDebugString(str, strlen(str));
 };
+
+bool KernelLogger::ShouldFlush() {
+    return true;
+}
+
 };  // namespace skyline::logger

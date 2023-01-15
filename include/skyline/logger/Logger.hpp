@@ -16,6 +16,7 @@ class Logger {
     virtual void Initialize() = 0;
     virtual void SendRaw(void*, size_t) = 0;
     virtual std::string FriendlyName() = 0;
+    virtual bool ShouldFlush() = 0;
 
 #ifndef NOLOG
     void StartThread();

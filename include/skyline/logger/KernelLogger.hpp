@@ -10,6 +10,7 @@ class KernelLogger : public Logger {
     KernelLogger();
 
     virtual void Initialize();
+    virtual bool ShouldFlush() override;
     virtual void SendRaw(void*, size_t);
     virtual std::string FriendlyName() { return "KernelLogger"; }
 };

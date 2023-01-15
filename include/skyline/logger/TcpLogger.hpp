@@ -15,7 +15,11 @@ namespace skyline::logger {
 class TcpLogger : public Logger {
    public:
     virtual void Initialize();
+    virtual bool ShouldFlush() override;
     virtual void SendRaw(void*, size_t);
     virtual std::string FriendlyName() { return "TcpLogger"; }
 };
+
+    void setup_socket_hooks();
 };  // namespace skyline::logger
+
