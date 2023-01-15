@@ -10,8 +10,6 @@
 char ALIGNA(0x1000) exception_handler_stack[0x4000];
 nn::os::UserExceptionInfo exception_info;
 
-const char* RomMountName = "rom";
-
 void exception_handler(nn::os::UserExceptionInfo* info) {
     skyline::logger::s_Instance->LogFormat("Exception occurred!\n");
 
@@ -25,18 +23,9 @@ void exception_handler(nn::os::UserExceptionInfo* info) {
 }
 
 static skyline::utils::Task* after_romfs_task = new skyline::utils::Task{[]() {
-    // mount sd
-    // nn::os::SleepThread(nn::TimeSpan::FromSeconds(2));
-
-    // nn::fs::FileHandle handle;
-    // int64_t file_size = 0;
-
-    // nn::fs::OpenFile(&handle, "rom:/data.arc", nn::fs::OpenMode_Read);
-    // nn::fs::GetFileSize(&file_size, handle);
-    // nn::fs::CloseFile(handle);
-
     const size_t poolSize = 0x600000;
     void* socketPool = memalign(0x4000, poolSize);
+    // TODO: Some games (Fire Emblem Three Houses, Pokemon Sword/Shield if I'm not mistaken, ...) use the &Config variant before arriving here and do not appreciate this. A shared lock between both impls would be convenient.
     nn::socket::Initialize(socketPool, poolSize, 0x20000, 14);
 
     skyline::logger::s_Instance->StartThread();
@@ -45,11 +34,14 @@ static skyline::utils::Task* after_romfs_task = new skyline::utils::Task{[]() {
     skyline::logger::s_Instance->LogFormat("[skyline_main] Mounted SD (0x%x)", rc);
 
     // load plugins
-    skyline::plugin::Manager::LoadPlugins();
+    // Note: Bypassing the singleton-like system because some older games (Final Fantasy 9) seem to have issues with _cxa_guard_acquire which gcc automatically adds when using the static instance
+    auto manager = new skyline::plugin::Manager();
+    manager->LoadPluginsImpl();
 }};
 
 void stub() {}
 
+static skyline::utils::Once g_MountRomInit;
 Result (*nnFsMountRomImpl)(char const*, void*, unsigned long);
 
 Result handleNnFsMountRom(char const* path, void* buffer, unsigned long size) {
@@ -58,11 +50,15 @@ Result handleNnFsMountRom(char const* path, void* buffer, unsigned long size) {
 
     skyline::utils::g_RomMountStr = std::string(path) + ":/";
 
-    // start task queue
-    skyline::utils::SafeTaskQueue* taskQueue = new skyline::utils::SafeTaskQueue(100);
-    taskQueue->startThread(20, 3, 0x4000);
-    taskQueue->push(new std::unique_ptr<skyline::utils::Task>(after_romfs_task));
-    nn::os::WaitEvent(&after_romfs_task->completionEvent);
+    // Some games such as Persona 5 Royal call this method multiple times, so we have to ensure we only initialize the queue once
+    g_MountRomInit.call_once([]() {
+        // start task queue
+        skyline::utils::SafeTaskQueue* taskQueue = new skyline::utils::SafeTaskQueue(100);
+        taskQueue->startThread(20, 3, 0x10000); // Stack size 0x4000 -> 0x10000
+        taskQueue->push(new std::unique_ptr<skyline::utils::Task>(after_romfs_task));
+        nn::os::WaitEvent(&after_romfs_task->completionEvent);
+    });
+
     return rc;
 }
 
@@ -94,7 +90,8 @@ Result nn_ro_init() {
     Result ret = 0;
 
     g_RoInit.call_once([&ret]() {
-         ret = nnRoInitializeImpl();
+        ret = nnRoInitializeImpl();
+        skyline::logger::s_Instance->LogFormat("[skyline_main] Ran hooked nn::ro::initialize (0x%x)", ret);
     });
 
     return ret;
@@ -113,7 +110,7 @@ void skyline_main() {
 
     // initialize logger
     skyline::logger::s_Instance = new skyline::logger::TcpLogger();
-    skyline::logger::s_Instance->Log("[skyline_main] Begining initialization.\n");
+    skyline::logger::s_Instance->Log("[skyline_main] Beginning initialization.\n");
 
     // override exception handler to dump info
     nn::os::SetUserExceptionHandler(exception_handler, exception_handler_stack, sizeof(exception_handler_stack),
@@ -126,33 +123,20 @@ void skyline_main() {
     A64HookFunction(reinterpret_cast<void*>(nn::ro::Initialize), reinterpret_cast<void*>(nn_ro_init), (void**)&nnRoInitializeImpl);
 
     // hook abort to get crash info
-    /* uintptr_t VAbort_ptr = 0;
-    nn::ro::LookupSymbol(&VAbort_ptr, "_ZN2nn4diag6detail10VAbortImplEPKcS3_S3_iPKNS_6ResultEPKNS_2os17UserExceptionInfoES3_St9__va_list");
-    A64HookFunction(reinterpret_cast<void*>(VAbort_ptr), reinterpret_cast<void*>(handleNnDiagDetailVAbortImpl), (void**)&VAbortImpl); */
-
-    // mount rom
-    
+    // Note: This was commented out because some games do not use or have certain variations of this symbol.
+    // This needs to be reworked to check for which symbol is available beforehand.
+    // Until then, check Atmosphere's crash reports or Ryujinx's output
+    /*
+        uintptr_t VAbort_ptr = 0;
+        nn::ro::LookupSymbol(&VAbort_ptr, "_ZN2nn4diag6detail10VAbortImplEPKcS3_S3_iPKNS_6ResultEPKNS_2os17UserExceptionInfoES3_RSt9__va_list");
+        A64HookFunction(reinterpret_cast<void*>(VAbort_ptr), reinterpret_cast<void*>(handleNnDiagDetailVAbortImpl), (void**)&VAbortImpl);
+    */
 
     skyline::logger::s_Instance->LogFormat("[skyline_main] text: 0x%" PRIx64 " | rodata: 0x%" PRIx64
                                            " | data: 0x%" PRIx64 " | bss: 0x%" PRIx64 " | heap: 0x%" PRIx64,
                                            skyline::utils::g_MainTextAddr, skyline::utils::g_MainRodataAddr,
                                            skyline::utils::g_MainDataAddr, skyline::utils::g_MainBssAddr,
                                            skyline::utils::g_MainHeapAddr);
-
-    
-
-    // TODO: experiment more with NVN
-    /*nvnInit(NULL);
-
-    NVNdeviceBuilder deviceBuilder;
-    nvnDeviceBuilderSetDefaults(&deviceBuilder);
-    nvnDeviceBuilderSetFlags(&deviceBuilder, 0);
-
-    NVNdevice device;
-    nvnDeviceInitialize(&device, &deviceBuilder);
-
-    nvnInit(&device); // re-init with our newly acquired device
-    */
 }
 
 extern "C" void skyline_init() {
