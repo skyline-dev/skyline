@@ -1,6 +1,7 @@
 #pragma once
 
 #include "types.h"
+#include "../utils/cur_proc_handle.hpp"
 
 namespace skyline::inlinehook {
 class ControlledPages {

@@ -5,6 +5,7 @@
 #include "skyline/utils/cpputils.hpp"
 #include "skyline/utils/utils.h"
 #include "skyline/utils/call_once.hpp"
+#include "skyline/utils/cur_proc_handle.hpp"
 
 // For handling exceptions
 char ALIGNA(0x1000) exception_handler_stack[0x4000];
@@ -99,9 +100,7 @@ Result nn_ro_init() {
 
 void skyline_main() {
     // populate our own process handle
-    Handle h;
-    skyline::utils::Ipc::getOwnProcessHandle(&h);
-    envSetOwnProcessHandle(h);
+    envSetOwnProcessHandle(skyline::proc_handle::Get());
 
     // init hooking setup
     A64HookInit();

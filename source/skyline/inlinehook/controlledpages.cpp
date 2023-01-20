@@ -125,7 +125,7 @@ void ControlledPages::claim() {
         R_ERRORONFAIL(locateMappableSpace(&dst, alignedSize));
 
         // map pages
-        R_ERRORONFAIL(svcMapProcessMemory((void*)dst, envGetOwnProcessHandle(), alignedSrc, alignedSize));
+        R_ERRORONFAIL(svcMapProcessMemory((void*)dst, skyline::proc_handle::Get(), alignedSrc, alignedSize));
 
         // provide rw pointer into the respective location in newly mapped pages
         rw = (void*)(dst + ((s64)rx - alignedSrc));
@@ -150,7 +150,7 @@ void ControlledPages::unclaim() {
         armICacheInvalidate((void*)alignedSrc, size);
 
         // unmap pages
-        R_ERRORONFAIL(svcUnmapProcessMemory(alignedDst, envGetOwnProcessHandle(), alignedSrc, alignedSize));
+        R_ERRORONFAIL(svcUnmapProcessMemory(alignedDst, skyline::proc_handle::Get(), alignedSrc, alignedSize));
 
         // clean up variables
         rw = NULL;

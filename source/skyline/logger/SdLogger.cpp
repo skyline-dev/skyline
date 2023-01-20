@@ -24,6 +24,10 @@ void SdLogger::Initialize() {
     // nothing to do
 }
 
+bool SdLogger::ShouldFlush() {
+    return false;
+}
+
 void SdLogger::SendRaw(void* data, size_t size) {
     nn::fs::SetFileSize(fileHandle, offset + size);
 

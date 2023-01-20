@@ -176,6 +176,7 @@ typedef enum {
     InfoType_UsedNonSystemMemorySize =
         22,  ///< [6.0.0+] Amount of memory used by process, excluding that for process memory management.
     InfoType_IsApplication = 23,  ///< [9.0.0+] Whether the specified process is an Application.
+    InfoType_MesosphereCurrentProcess       = 65001,
 
     InfoType_ThreadTickCount = 0xF0000002,  ///< Number of ticks spent on thread.
 } InfoType;
