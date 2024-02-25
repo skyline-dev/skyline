@@ -27,7 +27,7 @@
  SOFTWARE.
  */
 #pragma once
-#define A64_MAX_BACKUPS 256 * 2
+#define A64_MAX_BACKUPS 1024 * 2
 
 #ifdef __cplusplus
 extern "C" {
