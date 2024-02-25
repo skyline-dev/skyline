@@ -65,6 +65,7 @@ Result init_normal(void* arg1, ulong arg2, ulong arg3, int arg4) {
 
         return res;
     }
+    return (Result)0;
 }
 
 Result init_config(nn::socket::Config const& config) {
@@ -79,6 +80,7 @@ Result init_config(nn::socket::Config const& config) {
 
         return res;
     }
+    return (Result)0;
 }
 
 void setup_socket_hooks() {
