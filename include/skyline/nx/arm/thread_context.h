@@ -16,11 +16,7 @@ typedef union {
 } CpuRegister;
 
 /// Armv8 NEON register.
-typedef union {
-    u128 v;    ///< 128-bit vector view.
-    double d;  ///< 64-bit double-precision view.
-    float s;   ///< 32-bit single-precision view.
-} FpuRegister;
+typedef u128 FpuRegister;
 
 /// Armv8 register group. @ref svcGetThreadContext3 uses @ref RegisterGroup_All.
 typedef enum {

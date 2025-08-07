@@ -49,7 +49,9 @@ long long int llabs(long long int n);
 #include "skyline/logger/Logger.hpp"
 
 struct InlineCtx {
-    nn::os::CpuRegister registers[29];
+    nn::os::CpuRegister registers[31];
+    nn::os::CpuRegister sp;
+    nn::os::FpuRegister registers_f[32];
 };
 
 void A64HookInit();
