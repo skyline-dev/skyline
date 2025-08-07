@@ -18,15 +18,15 @@ jobs:
     - name: Upload build artifact
       uses: actions/upload-artifact@v4
       with:
-        name: zip
-        path: skyline.zip
+        name: skyline.zip
+        path: exefs
   upload:
     runs-on: ubuntu-latest
     needs: build
     steps:
     - uses: actions/download-artifact@v4
       with:
-        name: zip
+        name: skyline.zip
     - name: Upload Release
       uses: majkrzak/create-release@master
       with:
@@ -36,4 +36,4 @@ jobs:
         body: Beta built off of the latest code in the repository.
         prerelease: true
         recreate: true
-        assets: zip:skyline.zip:application/zip
+        assets: skyline.zip:skyline.zip:application/zip
