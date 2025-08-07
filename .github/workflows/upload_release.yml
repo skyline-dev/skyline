@@ -27,6 +27,8 @@ jobs:
     - uses: actions/download-artifact@v4
       with:
         name: zip
+    - name: ls
+      run: ls
     - name: Upload Release
       uses: majkrzak/create-release@master
       with:
