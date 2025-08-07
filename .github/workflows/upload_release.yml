@@ -27,8 +27,6 @@ jobs:
     - uses: actions/download-artifact@v4
       with:
         name: zip
-    - name: ls
-      run: ls
     - name: Upload Release
       uses: majkrzak/create-release@master
       with:
@@ -38,4 +36,4 @@ jobs:
         body: Beta built off of the latest code in the repository.
         prerelease: true
         recreate: true
-        assets: zip.zip:skyline.zip:application/zip
+        assets: skyline.zip:skyline.zip:application/zip
