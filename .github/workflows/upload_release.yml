@@ -36,4 +36,4 @@ jobs:
         body: Beta built off of the latest code in the repository.
         prerelease: true
         recreate: true
-        assets: zip/skyline.zip:skyline.zip:application/zip
+        assets: zip:skyline.zip:application/zip
